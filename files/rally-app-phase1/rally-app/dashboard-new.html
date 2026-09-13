@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Rally</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ========== DASHBOARD HEADER ========== */
+    .dashboard-header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    .dashboard-header .wrap {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    }
+
+    .dashboard-logo {
+      font-family: var(--font-display); font-weight: 700; font-size: 22px;
+      color: var(--primary); letter-spacing: -0.02em; flex-shrink: 0;
+    }
+
+    .search-bar {
+      flex: 1; max-width: 400px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; font-size: 14px;
+    }
+    .search-bar input {
+      flex: 1; border: none; background: transparent;
+      outline: none; color: var(--text-muted); font-size: 14px;
+    }
+    .search-bar input::placeholder { color: var(--text-muted); }
+    .search-bar .icon { font-size: 16px; color: var(--text-muted); }
+
+    .header-actions {
+      display: flex; align-items: center; gap: 12px;
+      margin-left: auto;
+    }
+
+    .btn-create {
+      padding: 9px 14px; font-size: 13px; font-weight: 600;
+      background: var(--primary); color: #fff;
+      border-radius: 10px; transition: background .15s;
+    }
+    .btn-create:hover { background: var(--primary-dark); }
+
+    .btn-notification {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; font-size: 18px; background: transparent;
+      color: var(--text-secondary); cursor: pointer; transition: background .15s;
+    }
+    .btn-notification:hover { background: var(--bg); }
+
+    /* ========== USER MENU & MODAL ========== */
+    .user-menu {
+      display: flex; align-items: center; position: relative;
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 13px;
+      cursor: pointer; transition: transform .15s;
+    }
+    .user-avatar:hover { transform: scale(1.08); }
+    .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+    .profile-modal {
+      display: none; position: absolute; top: 52px; right: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px; width: 360px; box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      z-index: 100;
+    }
+    .profile-modal.show { display: block; }
+    .profile-modal-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .profile-modal-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 17px;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .profile-modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-modal-info h3 { font-size: 16px; margin-bottom: 2px; }
+    .profile-modal-info .meta { font-size: 12px; color: var(--text-secondary); }
+
+    .profile-modal-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .profile-modal-stat { text-align: center; }
+    .profile-modal-stat .num { font-family: var(--font-mono); font-weight: 600; font-size: 18px; }
+    .profile-modal-stat .label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .profile-modal-actions {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .profile-modal-actions button {
+      padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
+      font-size: 13.5px; font-weight: 600; text-align: center;
+      transition: all .15s; color: var(--ink);
+    }
+    .profile-modal-actions button:hover { background: var(--bg); }
+    .profile-modal-actions .logout { border-color: var(--danger); color: var(--danger); }
+    .profile-modal-actions .logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+    @media (max-width: 600px) {
+      .profile-modal { width: calc(100vw - 32px); right: 50%; transform: translateX(50%); }
+      .search-bar { display: none; }
+      .dashboard-header .wrap { gap: 8px; }
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .dashboard-content { padding: 40px 0; }
+
+    .section {
+      margin-bottom: 60px;
+    }
+    .section-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head h2 {
+      font-family: var(--font-display); font-size: 20px; font-weight: 600;
+    }
+    .section-head a {
+      font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500;
+    }
+    .section-head a:hover { text-decoration: underline; }
+
+    /* ========== MATCH CARDS ========== */
+    .match-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .match-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      padding: 20px; display: flex; flex-direction: column; gap: 10px;
+      transition: border-color .15s, transform .15s;
+    }
+    .match-card:hover {
+      border-color: var(--primary); transform: translateY(-2px);
+    }
+
+    .match-card .top-row {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+    }
+    .match-card h3 { font-family: var(--font-display); font-size: 17px; margin: 0; }
+    .badge-skill {
+      flex-shrink: 0; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+      padding: 3px 9px; border-radius: 100px; background: var(--primary-light); color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .match-card .meta-line {
+      font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;
+    }
+    .slot-bar { display: flex; gap: 3px; margin-top: 4px; }
+    .slot { flex: 1; height: 7px; border-radius: 4px; background: var(--primary-light); }
+    .slot.filled { background: var(--primary); }
+    .slot-label {
+      font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
+      display: flex; justify-content: space-between; margin-top: 6px;
+    }
+    .slot-label b { color: var(--ink); font-weight: 600; }
+    .match-card .price { font-size: 13px; color: var(--text-secondary); }
+    .match-card .full-tag { font-size: 12px; font-weight: 600; color: #c43d3d; }
+    .match-card .btn { margin-top: 4px; }
+
+    /* ========== STATE BOXES ========== */
+    .state-box {
+      text-align: center; padding: 70px 20px; color: var(--text-secondary);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    }
+    .state-box .ic { font-size: 32px; margin-bottom: 10px; }
+    .state-box p { font-size: 14px; margin: 0; }
+
+    /* ========== COURT LIST (Around You) ========== */
+    .court-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; display: flex; align-items: center; justify-content: space-between;
+      transition: border-color .15s;
+    }
+    .court-item:hover { border-color: var(--primary); }
+
+    .court-info {
+      flex: 1;
+    }
+    .court-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .court-info p { font-size: 12px; color: var(--text-secondary); margin: 0; }
+
+    .court-distance {
+      font-size: 12px; font-weight: 600; color: var(--primary); white-space: nowrap; margin-left: 12px;
+    }
+
+    .court-list { display: grid; gap: 12px; }
+
+    /* ========== PHASE 2 PLACEHOLDER ========== */
+    .coming-soon {
+      background: linear-gradient(135deg, var(--primary-light), var(--bg));
+      border: 1px dashed var(--border);
+      border-radius: 18px; padding: 48px 24px;
+      text-align: center; color: var(--text-secondary);
+    }
+    .coming-soon .icon { font-size: 40px; margin-bottom: 12px; }
+    .coming-soon p { font-size: 14px; margin: 0; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 980px) {
+      .match-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .match-grid { grid-template-columns: 1fr; }
+      .dashboard-header .wrap { flex-direction: column; gap: 12px; }
+      .search-bar { display: flex; width: 100%; max-width: none; }
+      .header-actions { margin-left: 0; width: 100%; justify-content: flex-end; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-loader" id="pageLoader">
+  <div class="spinner spinner-dark" style="width:28px;height:28px;"></div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+  <!-- ========== HEADER ========== -->
+  <header class="dashboard-header">
+    <div class="wrap">
+      <div class="dashboard-logo">Rally</div>
+      <div class="search-bar">
+        <span class="icon">🔍</span>
+        <input type="text" placeholder="Tìm trận, sân..." id="searchInput">
+      </div>
+      <div class="header-actions">
+        <button class="btn-create" onclick="openCreateMenu()">+ Tạo mới</button>
+        <button class="btn-notification" title="Thông báo">🔔</button>
+        <div class="user-menu">
+          <div class="user-avatar" id="userAvatar" onclick="toggleProfileModal(event)">?</div>
+          <div class="profile-modal" id="profileModal">
+            <div class="profile-modal-header">
+              <div class="profile-modal-avatar" id="modalAvatar">?</div>
+              <div class="profile-modal-info">
+                <h3 id="modalName">—</h3>
+                <div class="meta" id="modalMeta">—</div>
+              </div>
+            </div>
+            <div class="profile-modal-stats">
+              <div class="profile-modal-stat">
+                <div class="num" id="modalMatches">0</div>
+                <div class="label">Trận</div>
+              </div>
+              <div class="profile-modal-stat">
+                <div class="num" id="modalPlayers">0</div>
+                <div class="label">Đã gặp</div>
+              </div>
+              <div class="profile-modal-stat">
+                <div class="num" id="modalRating">0</div>
+                <div class="label">Đánh giá</div>
+              </div>
+            </div>
+            <div class="profile-modal-actions">
+              <button class="logout" onclick="handleLogout()">Đăng xuất</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <div class="wrap dashboard-content">
+
+    <!-- Section: Tonight -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Tối nay</h2>
+        <a href="findmatch.html">Xem tất cả →</a>
+      </div>
+      <div id="tonightSection">
+        <div class="state-box">
+          <div class="ic">⏳</div>
+          <p>Đang tải...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Around You -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Quanh bạn</h2>
+        <a href="findmatch.html">Khám phá →</a>
+      </div>
+      <div id="aroundYouSection">
+        <div class="state-box">
+          <div class="ic">⏳</div>
+          <p>Đang tải...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Find Players (Phase 2) -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Tìm bạn chơi</h2>
+      </div>
+      <div class="coming-soon">
+        <div class="icon">👥</div>
+        <p>Tính năng này sắp ra mắt. Hãy quay lại sau!</p>
+      </div>
+    </section>
+
+    <!-- Section: Community Feed (Phase 2) -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Cộng đồng</h2>
+      </div>
+      <div class="coming-soon">
+        <div class="icon">💬</div>
+        <p>Chia sẻ trải nghiệm và kết nối cộng đồng. Sắp ra mắt!</p>
+      </div>
+    </section>
+
+    <!-- Section: Leaderboard (Phase 2) -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Bảng xếp hạng</h2>
+      </div>
+      <div class="coming-soon">
+        <div class="icon">🏆</div>
+        <p>Xem xếp hạng cộng đồng. Sắp ra mắt!</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
+import { getPlayerProfile } from "../js/profile-service.js";
+import { listenToMatches, formatMatchDate } from "./match-service.js";
+
+// ========== UTILITY FUNCTIONS ==========
+function initials(name) {
+  return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function isToday(dateStr) {
+  const today = new Date().toISOString().split("T")[0];
+  return dateStr === today;
+}
+
+// ========== MODAL FUNCTIONS ==========
+function toggleProfileModal(event) {
+  event.stopPropagation();
+  const modal = document.getElementById("profileModal");
+  modal.classList.toggle("show");
+}
+
+document.addEventListener("click", (e) => {
+  const modal = document.getElementById("profileModal");
+  const userMenu = document.querySelector(".user-menu");
+  if (modal && !userMenu.contains(e.target)) {
+    modal.classList.remove("show");
+  }
+});
+
+// ========== MENU FUNCTIONS ==========
+function openCreateMenu() {
+  // Phase 2: Create menu (for now, just link to creatematch)
+  window.location.href = "creatematch.html";
+}
+
+// ========== PROFILE LOADING ==========
+function loadUserProfile(user) {
+  getPlayerProfile(user.uid)
+    .then((profile) => {
+      if (!profile) {
+        window.location.replace("onboarding.html");
+        return;
+      }
+
+      const name = profile.displayName || user.displayName || user.email;
+      const styles = Array.isArray(profile.playingStyle) ? profile.playingStyle.join(" · ") : "";
+      const metaParts = [profile.skillLevel, styles, profile.favoriteCourt].filter(Boolean);
+      const metaText = metaParts.join(" · ") || "Hoàn tất hồ sơ để hiện trình độ";
+
+      // Update modal
+      document.getElementById("modalName").textContent = name;
+      document.getElementById("modalMeta").textContent = metaText;
+      document.getElementById("modalMatches").textContent = profile.matchesPlayed ?? 0;
+      document.getElementById("modalPlayers").textContent = profile.playersMet ?? 0;
+      document.getElementById("modalRating").textContent = profile.rating ?? 0;
+
+      // Update avatar
+      const avatarInitials = initials(name);
+      const avatarEls = [document.getElementById("userAvatar"), document.getElementById("modalAvatar")];
+      avatarEls.forEach((el) => {
+        if (profile.photoURL) {
+          el.innerHTML = `<img src="${profile.photoURL}" alt="${name}">`;
+        } else {
+          el.textContent = avatarInitials;
+        }
+      });
+    })
+    .catch((err) => {
+      console.error("Lỗi tải hồ sơ:", err);
+    });
+}
+
+// ========== MATCH RENDERING ==========
+function renderMatchCard(m) {
+  const isFull = (m.currentPlayers ?? 0) >= (m.maxPlayers ?? 0);
+  const total = m.maxPlayers ?? 0;
+  const filled = Math.min(m.currentPlayers ?? 0, total);
+  const slots = Array.from({ length: total }, (_, i) =>
+    `<div class="slot ${i < filled ? "filled" : ""}"></div>`
+  ).join("");
+  const priceLabel = m.pricePerPerson
+    ? `${Number(m.pricePerPerson).toLocaleString("vi-VN")}đ / người`
+    : "Miễn phí / tự thoả thuận";
+
+  return `
+    <div class="match-card">
+      <div class="top-row">
+        <h3>${escapeHtml(m.title || "Trận chưa đặt tên")}</h3>
+        <span class="badge-skill">${escapeHtml(m.skillLevel || "All")}</span>
+      </div>
+      <div class="meta-line">📍 ${escapeHtml(m.courtName || "")}${m.area ? " · " + escapeHtml(m.area) : ""}</div>
+      <div class="meta-line">🗓️ ${formatMatchDate(m.date)} · ${escapeHtml(m.startTime || "")}–${escapeHtml(m.endTime || "")}</div>
+      <div class="slot-bar">${slots}</div>
+      <div class="slot-label"><span><b>${filled}/${total}</b> người chơi</span>${isFull ? '<span class="full-tag">Đã đủ người</span>' : ""}</div>
+      <div class="price">${priceLabel}</div>
+      <button type="button" class="btn ${isFull ? "btn-outline" : "btn-primary"} btn-block" ${isFull ? "disabled" : ""}>
+        ${isFull ? "Đã đủ người" : "Tham gia trận"}
+      </button>
+    </div>
+  `;
+}
+
+function renderTonightMatches(allMatches) {
+  const tonightSection = document.getElementById("tonightSection");
+  
+  // Filter matches for today
+  const tonightMatches = (allMatches || []).filter(m => isToday(m.date));
+
+  if (!tonightMatches || tonightMatches.length === 0) {
+    tonightSection.innerHTML = `
+      <div class="state-box">
+        <div class="ic">🌙</div>
+        <p>Không có trận nào hôm nay.<br>Hãy khám phá thêm các trận khác!</p>
+      </div>`;
+    return;
+  }
+
+  tonightSection.innerHTML = `<div class="match-grid">${tonightMatches.slice(0, 6).map(renderMatchCard).join("")}</div>`;
+}
+
+function renderAroundYouMatches(allMatches) {
+  const aroundYouSection = document.getElementById("aroundYouSection");
+
+  if (!allMatches || allMatches.length === 0) {
+    aroundYouSection.innerHTML = `
+      <div class="state-box">
+        <div class="ic">🗺️</div>
+        <p>Chưa có trận nào gần bạn.<br>Tạo một trận hoặc quay lại sau!</p>
+      </div>`;
+    return;
+  }
+
+  // Group by unique courts (simple version without geolocation)
+  const courtMap = new Map();
+  allMatches.forEach(m => {
+    const key = `${m.courtName}`;
+    if (!courtMap.has(key)) {
+      courtMap.set(key, {
+        name: m.courtName,
+        area: m.area,
+        matches: [],
+      });
+    }
+    courtMap.get(key).matches.push(m);
+  });
+
+  const courts = Array.from(courtMap.values()).slice(0, 5);
+
+  if (courts.length === 0) {
+    aroundYouSection.innerHTML = `
+      <div class="state-box">
+        <div class="ic">🗺️</div>
+        <p>Chưa có dữ liệu sân.<br>Hãy tạo một trận!</p>
+      </div>`;
+    return;
+  }
+
+  const courtListHtml = courts.map(c => `
+    <div class="court-item">
+      <div class="court-info">
+        <h3>${escapeHtml(c.name)}</h3>
+        <p>${escapeHtml(c.area)} · ${c.matches.length} trận</p>
+      </div>
+      <div class="court-distance">Gần</div>
+    </div>
+  `).join("");
+
+  aroundYouSection.innerHTML = `<div class="court-list">${courtListHtml}</div>`;
+}
+
+// ========== INITIALIZATION ==========
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("auth.html");
+    return;
+  }
+
+  // Load user profile
+  loadUserProfile(user);
+
+  // Listen to matches and render both sections
+  listenToMatches(
+    {},  // filters object (empty means no filtering)
+    (matches) => {
+      renderTonightMatches(matches);
+      renderAroundYouMatches(matches);
+    },
+    (err) => {
+      console.error("listenToMatches error:", err);
+      // If there's a Firestore error, display in sections
+      const tonightSection = document.getElementById("tonightSection");
+      const aroundYouSection = document.getElementById("aroundYouSection");
+      tonightSection.innerHTML = `
+        <div class="state-box">
+          <div class="ic">⚠️</div>
+          <p>Không thể tải dữ liệu.<br>Vui lòng thử lại!</p>
+        </div>`;
+      aroundYouSection.innerHTML = `
+        <div class="state-box">
+          <div class="ic">⚠️</div>
+          <p>Không thể tải dữ liệu.<br>Vui lòng thử lại!</p>
+        </div>`;
+    }
+  );
+
+  // Show content
+  document.getElementById("pageLoader").style.display = "none";
+  document.getElementById("appContent").style.display = "block";
+});
+
+// ========== GLOBAL FUNCTIONS ==========
+window.toggleProfileModal = toggleProfileModal;
+window.handleLogout = async () => {
+  if (confirm("Đăng xuất khỏi Rally?")) {
+    await signOut(auth);
+    window.location.href = "auth.html";
+  }
+};
+window.openCreateMenu = openCreateMenu;
+</script>
+
+</body>
+</html>

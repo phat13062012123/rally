@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reclub - Vì Tình Yêu Trò Chơi</title>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,100..900;1,100..900&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#51596f",
+                        "on-primary-fixed": "#231b00",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "outline": "#7f7660",
+                        "primary-fixed": "#ffe083",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#565e74",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "background": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface": "#f7f9fb",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "inverse-primary": "#eec200",
+                        "primary": "#735c00",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary-fixed": "#131b2e",
+                        "secondary": "#0051d5",
+                        "on-surface": "#191c1e",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#4d4632",
+                        "on-secondary-container": "#fefcff",
+                        "on-secondary-fixed": "#00174b",
+                        "primary-fixed-dim": "#eec200",
+                        "surface-container": "#eceef0",
+                        "secondary-container": "#316bf3",
+                        "tertiary-fixed": "#dae2fd",
+                        "primary-container": "#facc15",
+                        "on-background": "#191c1e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#6c5700",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#d1c6ab",
+                        "surface-tint": "#735c00",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#dbe1ff",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-container": "#c9d0ea",
+                        "on-primary-fixed-variant": "#574500",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "stack-md": "24px",
+                        "container-max": "1280px",
+                        "base": "8px",
+                        "stack-lg": "48px",
+                        "margin-desktop": "48px",
+                        "stack-sm": "12px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": [
+                            "JetBrains Mono"
+                        ],
+                        "headline-lg-mobile": [
+                            "Anybody"
+                        ],
+                        "headline-md": [
+                            "Anybody"
+                        ],
+                        "display-xl": [
+                            "Anybody"
+                        ],
+                        "headline-lg": [
+                            "Anybody"
+                        ],
+                        "body-lg": [
+                            "Hanken Grotesk"
+                        ],
+                        "body-md": [
+                            "Hanken Grotesk"
+                        ]
+                    },
+                    "fontSize": {
+                        "label-caps": [
+                            "12px",
+                            {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "headline-lg-mobile": [
+                            "32px",
+                            {
+                                "lineHeight": "38px",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "headline-md": [
+                            "24px",
+                            {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "display-xl": [
+                            "64px",
+                            {
+                                "lineHeight": "72px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "800"
+                            }
+                        ],
+                        "headline-lg": [
+                            "40px",
+                            {
+                                "lineHeight": "48px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "body-lg": [
+                            "18px",
+                            {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "body-md": [
+                            "16px",
+                            {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden">
+<!-- Top Navigation (Generated from JSON) -->
+<nav class="bg-surface dark:bg-inverse-surface fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto shadow-sm dark:bg-surface-container-low docked full-width top-0">
+<div class="flex items-center gap-4">
+<a class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight" href="#">Reclub</a>
+</div>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Clubs</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Tournaments</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Meets</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-primary font-body-md text-body-md hover:text-primary transition-colors duration-200" href="#">Community</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary font-label-caps uppercase hover:opacity-80 transition-opacity">Language</button>
+<button class="bg-primary-container text-on-primary-container font-label-caps uppercase px-4 py-2 rounded-full font-bold hover:opacity-90 transition-opacity shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)]">Get App</button>
+</div>
+</nav>
+<main class="pt-[80px]"> <!-- Padding for fixed nav -->
+<!-- Hero Section -->
+<section class="relative min-h-[80vh] flex flex-col items-center justify-center text-center px-margin-mobile md:px-margin-desktop py-stack-lg overflow-hidden">
+<!-- Animated background accent -->
+<div class="absolute inset-0 z-0 opacity-10 pointer-events-none flex justify-center items-center">
+<span class="material-symbols-outlined text-[400px] text-primary" style="font-variation-settings: 'FILL' 1;">sports_esports</span>
+</div>
+<div class="z-10 max-w-4xl mx-auto flex flex-col items-center gap-stack-md">
+<h1 class="font-display-xl text-display-xl text-primary uppercase italic tracking-tighter drop-shadow-sm">
+                    VÌ TÌNH YÊU TRÒ CHƠI
+                </h1>
+<div class="flex gap-4 mt-4">
+<a class="hover:scale-105 transition-transform" href="https://itunes.apple.com/us/app/reclub-social-sports-nearby/id1323924315?ls=1&amp;mt=8"><img class="h-[48px] w-auto rounded-lg" data-alt="A sleek, modern Apple App Store download badge rendered in a minimalist UI style against a bright background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMyLMlliZW2to18IACjpDe-uie-Ea543omFB5l02aDhuwfnfDd00kJd1F9hC3V6yMHkPOvBGWs4Gl7BZShQCShuNQ1ClsQdlAfVvYKvlgw6J3AkiDGl7RvPAxQEUkiDs6uEylzqr1etcSERHo2bXRZBy7guWshJ0e0vR7VB8f0VYHIjyI6XTmOvH8IuuvWy3zuFGypCnF51Ss79nTNYZqrhTNfPhj8m1D8s1mQDykxng2ga6PGNZlL"/></a>
+<a class="hover:scale-105 transition-transform" href="https://play.google.com/store/apps/details?id=co.reclub"><img class="h-[48px] w-auto rounded-lg" data-alt="A clean, high-contrast Google Play Store download badge suitable for a modern athletic app interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqcM9Xdwav-mhZ7ceNSzO5U5KqnS2wXiX-nEv5GWgOTIHmlZ5mIaClIyFOD5hKe4K7h3iIMRD-oZ8Gu2wzHc__D9caBCGISeSnukXJ5zJV-GtJr8GQu91sfugCUVU4rJgSRYQQF6NC70lK-8_nrNfK3pXZ3JKOvjEcipSEtCEvGPrnaFIjuPS0tdngcXyk6_Dzq7An8e2BR1GUuRrXd4c7Nka5FxI577E1bv-COd_NiN2z4g1Q0abr"/></a>
+</div>
+<a class="font-label-caps text-label-caps text-secondary uppercase hover:underline mt-2" href="/vi/charter">Đọc điều lệ</a>
+</div>
+<div class="w-full max-w-[1400px] mt-stack-lg z-10">
+<img alt="Collage of people playing various sports" class="w-full h-auto rounded-xl shadow-[0_12px_32px_rgba(15,23,42,0.12)] object-cover object-center max-h-[500px]" src="https://lh3.googleusercontent.com/aida/AP1WRLvRVCChiaeGPPy2l2qkuZuVClu6LBEll0TgTfXqO2Xd5rmwvfPzcizBe5rkyF3UgvivhKIkEq7-hM6YLnF4U7inEZaJOlh24eYlu2BrutPlU-2ofbEQrn9GDGYwDFoQ8VLJUFZ6fRSeS5SfcHl76PRRqx1Z-CJKAopNZsww6chEeJHOJU7y5TH5fqpULTqS0haq6RISxpnt5ooeszThQu5WD8e5sEsxr2R-jq5KeKu5mAkuicAmRea0Psw"/>
+</div>
+</section>
+<!-- Core Features Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop bg-surface-container-lowest relative z-20">
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-stack-lg max-w-3xl mx-auto">
+<h2 class="font-headline-lg text-headline-lg md:text-display-xl font-display-xl text-on-surface mb-stack-sm tracking-tight">Tất Cả Công Cụ Bạn Cần</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Điều hành câu lạc bộ, tổ chức các buổi gặp mặt, quản lý giải đấu và xây dựng cộng đồng của bạn - tất cả trong một nơi.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-stack-md">
+<!-- Feature Card 1 -->
+<div class="bg-surface p-stack-md rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)] transition-shadow flex flex-col gap-stack-sm border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Giải đấu</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">Tạo và quản lý giải đấu chưa bao giờ dễ dàng đến thế! Quản lý đăng ký, sắp xếp trận đấu và theo dõi kết quả ngay trên điện thoại của bạn.</p>
+<a class="text-secondary font-label-caps uppercase hover:underline mt-auto pt-4 flex items-center gap-2" href="/vi/platform/competitions">Tìm hiểu thêm <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+<!-- Feature Card 2 -->
+<div class="bg-surface p-stack-md rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)] transition-shadow flex flex-col gap-stack-sm border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Cộng đồng</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">Kết nối với bạn bè yêu thể thao, chia sẻ niềm vui chiến thắng và lưu lại khoảnh khắc với cộng đồng Reclub.</p>
+<a class="text-secondary font-label-caps uppercase hover:underline mt-auto pt-4 flex items-center gap-2" href="/vi/platform/community">Tìm hiểu thêm <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+<!-- Feature Card 3 -->
+<div class="bg-surface p-stack-md rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)] transition-shadow flex flex-col gap-stack-sm border border-surface-container">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined" data-icon="sports_club">maps_ar</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Câu lạc bộ</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">Muốn kết nối mọi người nhưng quá mệt mỏi với việc dùng nhiều ứng dụng để quản lý?Tất cả công cụ bạn cần để kết nối người chơi thể thao đều ở đây, trong cùng một ứng dụng.</p>
+<a class="text-secondary font-label-caps uppercase hover:underline mt-auto pt-4 flex items-center gap-2" href="/vi/platform/clubs">Tìm hiểu thêm <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+<!-- Feature Card 4 - Highlighted -->
+<div class="bg-secondary-fixed p-stack-md rounded-xl shadow-[0_12px_32px_rgba(15,23,42,0.12)] flex flex-col gap-stack-sm border border-secondary-fixed-dim relative overflow-hidden">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container relative z-10">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-secondary-fixed uppercase tracking-tight relative z-10">Kèo thể thao</h3>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant flex-grow relative z-10">Chơi thể thao nào! Chuẩn bị chi tiết kèo, quản lý người chơi hiệu quả với danh sách chờ, phân chia đội, và những công cụ được làm riêng cho hoạt động thể thao.</p>
+<div class="mt-4 relative z-10 w-full flex justify-center">
+<img alt="RSVP Interface Demo" class="rounded-lg max-h-[200px] w-auto shadow-md" src="https://lh3.googleusercontent.com/aida/AP1WRLsfF8QA7GySa79KUPHFWiZU50NCwUseFONOcCiu-oi3AImILYCtboxjliHwAQadwW7gyi73PnbEE9mvASkQednKET4kX4h3cArQ1MtG5dLq3RYuBgZirnul4aISy4ts-ReRjKpgmD-bnf-2rA8TvDBSHoNHEwkoP3jAb4CR8bUbjJYkOeHCPhJKx2iVFDFhkvtQYRzlWsSOPr-V_R682FoOwfwDjxiQDRNeWvdek2oVD3RQoZFk8G1mH_Y"/>
+</div>
+<a class="text-secondary font-label-caps uppercase hover:underline mt-auto pt-4 flex items-center gap-2 relative z-10" href="/vi/platform/meets">Tìm hiểu thêm <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+<div class="max-w-container-max mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-center text-on-surface mb-stack-lg tracking-tight uppercase italic">Người Hâm Mộ Nói Gì</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Testimonial 1 -->
+<div class="bg-surface p-stack-md rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.05)] border border-surface-container flex flex-col gap-stack-sm relative">
+<span class="material-symbols-outlined text-surface-dim text-[64px] absolute top-4 right-4 opacity-50" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<p class="font-body-lg text-body-lg text-on-surface italic relative z-10">"Reclub đã <strong class="font-bold text-primary">thay đổi cuộc chơi</strong> cho cộng đồng bóng chuyền của chúng tôi. Nền tảng này giúp tổ chức các trận đấu và giữ mọi người kết nối rất dễ dàng."</p>
+<div class="flex items-center gap-4 mt-auto pt-4 relative z-10">
+<img alt="Hole Nguyen" class="w-16 h-16 rounded-full border-2 border-surface object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvWQRWWeC5PIS7Gm0BuMq858SIEMRjzrgvZtA2pP-kbAE2QNfk4WXyjF8sJ9c-AxG2hu_3cU0D4UUV4LTrTap-0J6Z6P0GtZxU62vDBBh2QLgdITjKWNuBvv2ZGEjmPvDhXW-UvUY5dz4RH-G8zYtgtl-Rh3jcA72MiNXXqaC92UXBplnOuG2KTE-pPzqKTeL2S_y5V3B5lhec4X8LC8vhwgubDJm-9HgXt_vg1yVKZlqXAMlsqJJb-unk"/>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface text-[18px]">Hole Nguyen</h4>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Founder - Bay Area RC Volleyball</p>
+</div>
+</div>
+</div>
+<!-- Testimonial 2 -->
+<div class="bg-surface p-stack-md rounded-xl shadow-[0_4px_20px_rgba(15,23,42,0.05)] border border-surface-container flex flex-col gap-stack-sm relative">
+<span class="material-symbols-outlined text-surface-dim text-[64px] absolute top-4 right-4 opacity-50" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<p class="font-body-lg text-body-lg text-on-surface italic relative z-10">"Trình tạo đội, quản lý trận đấu, giải đấu và các tính năng thống kê khiến việc tổ chức câu lạc bộ thể thao của chúng tôi <strong class="font-bold text-primary">rất dễ dàng!</strong>"</p>
+<div class="flex items-center gap-4 mt-auto pt-4 relative z-10">
+<img alt="Julián Kassler" class="w-16 h-16 rounded-full border-2 border-surface object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvAGE81PGfQILp5fgIwbYZvzyNpxiQuTrPyFILUH2Ag1GpxzDZTRvH4S2t5nhN4xzc5xAdELUOG5La1LaUDoVySiS2XkNXa5UrFdN98fP11mn-Ff6T5HJJlBBL5DitBxrXwmdtqv0VNicvSxyhoinTILL5UfY0Hh1ZfGMdSKR7wmL_y9ARXA7ahDrgxV46f2x4KcTCSD2oFEM7qUF1gmTILkRfwAcuenDJxRMeuvphWi292ba6fStj163o"/>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface text-[18px]">Julián Kassler</h4>
+<p class="font-label-caps text-label-caps text-on-surface-variant">President - Vietnam Flag Football League</p>
+</div>
+</div>
+<a class="text-secondary font-label-caps uppercase hover:underline mt-2 self-start inline-block" href="/vi/stories/vietnam-flag-football-league">Đọc câu chuyện</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Why We Play Section -->
+<section class="py-stack-lg px-margin-mobile md:px-margin-desktop bg-surface text-center">
+<div class="max-w-container-max mx-auto flex flex-col items-center">
+<h2 class="font-display-xl text-display-xl text-on-surface uppercase italic tracking-tighter mb-2">WHY WE PLAY</h2>
+<a class="text-secondary font-label-caps uppercase hover:underline mb-stack-lg" href="/vi/charter">Đọc điều lệ</a>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg text-left">
+<div class="flex flex-col items-center text-center gap-stack-sm">
+<div class="w-20 h-20 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container mb-2">
+<span class="material-symbols-outlined text-[40px]" data-icon="handshake" style="font-variation-settings: 'FILL' 1;">handshake</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Đoàn Kết</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Thể thao có sức mạnh gắn kết mọi người bất kể xuất thân. Khi bạn là một phần của đội, đó là một cảm giác đặc biệt.</p>
+</div>
+<div class="flex flex-col items-center text-center gap-stack-sm">
+<div class="w-20 h-20 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed mb-2">
+<span class="material-symbols-outlined text-[40px]" data-icon="celebration" style="font-variation-settings: 'FILL' 1;">celebration</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Vui Vẻ</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Tình bạn khi chơi trong một đội, chia sẻ mục tiêu chung, ăn mừng chiến thắng - đó là điều thúc đẩy chúng ta chơi.</p>
+</div>
+<div class="flex flex-col items-center text-center gap-stack-sm">
+<div class="w-20 h-20 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container mb-2">
+<span class="material-symbols-outlined text-[40px]" data-icon="self_improvement" style="font-variation-settings: 'FILL' 1;">self_improvement</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">Thể Chất + Tinh Thần</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Thể thao kích hoạt toàn bộ cơ thể và tâm trí. Hãy ra ngoài, chạy nhảy và vận động để có một bản thân tốt hơn và khỏe mạnh hơn.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Generated from JSON) -->
+<footer class="bg-surface-container-highest dark:bg-surface-container-low w-full px-gutter py-stack-lg flex flex-col md:flex-row justify-between items-start gap-stack-md full-width bottom-0 mt-auto">
+<div class="flex flex-col gap-4 max-w-sm">
+<span class="font-headline-md text-headline-md font-bold text-primary">Reclub</span>
+<p class="font-body-md text-body-md text-on-surface dark:text-on-surface-variant">Nền tảng trao quyền cho cộng đồng thể thao. Được xây dựng cho tất cả chúng ta, vì tình yêu dành cho trò chơi.</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-4">© 2026 Reclub. Bảo lưu mọi quyền</p>
+</div>
+<div class="flex flex-wrap gap-stack-md w-full md:w-auto justify-between md:justify-end flex-grow">
+<div class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-on-surface font-bold uppercase mb-2">NỀN TẢNG</span>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/platform/clubs">CÂU LẠC BỘ</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/platform/competitions">GIẢI ĐẤU</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/platform/meets">BUỔI GẶP MẶT</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/platform/community">CỘNG ĐỒNG</a>
+</div>
+<div class="flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-on-surface font-bold uppercase mb-2">CÔNG TY</span>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="https://reclub.jobday.vn/">TUYỂN DỤNG</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/charter">ĐIỀU LỆ CỦA CHÚNG TÔI</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/community-standards">TIÊU CHUẨN CỘNG ĐỒNG</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/terms-of-service">ĐIỀU KHOẢN DỊCH VỤ</a>
+<a class="text-on-tertiary-fixed-variant hover:text-secondary font-body-md text-body-md hover:underline transition-all" href="/vi/privacy">CHÍNH SÁCH BẢO MẬT</a>
+</div>
+</div>
+</footer>
+</body></html>

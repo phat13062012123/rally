@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tạo hồ sơ — Rally</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .onboard-shell { width: 100%; max-width: 460px; }
+  .step-track { display: flex; gap: 6px; margin-bottom: 28px; }
+  .step-track .seg { flex: 1; height: 4px; border-radius: 4px; background: var(--border); }
+  .step-track .seg.done { background: var(--primary); }
+
+  .onboard-card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 32px; }
+  .onboard-eyebrow { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .onboard-card h1 { font-family: var(--font-display); font-size: 24px; margin-bottom: 6px; }
+  .onboard-card .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 26px; }
+
+  .avatar-preview {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .checkbox-pill { display: flex; align-items: center; gap: 8px; }
+  .checkbox-pill input { width: 16px; height: 16px; accent-color: var(--primary); }
+</style>
+</head>
+<body>
+
+  <div class="onboard-shell">
+    <div class="step-track">
+      <div class="seg done"></div>
+      <div class="seg done"></div>
+      <div class="seg"></div>
+    </div>
+
+    <div class="onboard-card">
+      <div class="onboard-eyebrow">Bước 3 / 3</div>
+      <div class="avatar-preview" id="avatarPreview">?</div>
+      <h1>Tạo hồ sơ người chơi</h1>
+      <div class="subtitle">Thông tin này giúp người chơi khác biết bạn phù hợp với trận nào.</div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <form id="onboardForm">
+        <div class="field">
+          <label>Tên hiển thị</label>
+          <input class="input" type="text" id="displayName" placeholder="NGUYEN PHAT" required>
+        </div>
+
+        <div class="field">
+          <label>Trình độ</label>
+          <div class="pill-group" id="skillGroup">
+            <label class="pill-option"><input type="radio" name="skill" value="Beginner"> Beginner</label>
+            <label class="pill-option selected"><input type="radio" name="skill" value="Intermediate" checked> Intermediate</label>
+            <label class="pill-option"><input type="radio" name="skill" value="Advanced"> Advanced</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Lối chơi</label>
+          <div class="pill-group" id="styleGroup">
+            <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Singles"> Singles</label>
+            <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Doubles"> Doubles</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Sân yêu thích</label>
+          <select class="select" id="favoriteCourt" required>
+            <option value="">Chọn khu vực</option>
+            <option>Quận 1</option>
+            <option>Quận 3</option>
+            <option>Quận 7</option>
+            <option>Quận 8</option>
+            <option>Quận 10</option>
+            <option>Quận Tân Bình</option>
+            <option>Quận Bình Thạnh</option>
+            <option>Thành phố Thủ Đức</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+          <span class="btn-label">Hoàn tất</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
+import { getPlayerProfile, createPlayerProfile } from "../js/profile-service.js";
+
+let currentUser = null;
+
+// Route guard: chưa đăng nhập -> đá về auth.html. Đã có hồ sơ rồi -> vào thẳng dashboard.
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.replace("auth.html");
+    return;
+  }
+  currentUser = user;
+
+  try {
+    const existingProfile = await getPlayerProfile(user.uid);
+    if (existingProfile) {
+      window.location.replace("dashboard.html");
+      return;
+    }
+  } catch (err) {
+    console.error("Không kiểm tra được hồ sơ Firestore:", err);
+  }
+
+  // Prefill từ thông tin auth (đặc biệt hữu ích cho Google Sign-In)
+  const nameInput = document.getElementById("displayName");
+  const avatar = document.getElementById("avatarPreview");
+  if (user.displayName) {
+    nameInput.value = user.displayName;
+    avatar.textContent = user.displayName.split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
+  } else {
+    avatar.textContent = (user.email || "?")[0].toUpperCase();
+  }
+});
+
+document.getElementById("displayName").addEventListener("input", (e) => {
+  const val = e.target.value.trim();
+  const avatar = document.getElementById("avatarPreview");
+  avatar.textContent = val ? val.split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase() : "?";
+});
+
+// Pill selection UI
+document.querySelectorAll(".pill-option input").forEach((input) => {
+  input.addEventListener("change", () => {
+    if (input.type === "radio") {
+      document.querySelectorAll(`input[name="${input.name}"]`).forEach((i) => {
+        i.closest(".pill-option").classList.toggle("selected", i.checked);
+      });
+    } else {
+      input.closest(".pill-option").classList.toggle("selected", input.checked);
+    }
+  });
+});
+
+const errorBox = document.getElementById("errorBox");
+function setError(msg) { errorBox.textContent = msg; errorBox.classList.add("show"); }
+
+document.getElementById("onboardForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errorBox.classList.remove("show");
+
+  const displayName = document.getElementById("displayName").value.trim();
+  const skillLevel = document.querySelector('input[name="skill"]:checked')?.value;
+  const playingStyle = [...document.querySelectorAll('input[name="style"]:checked')].map(i => i.value);
+  const favoriteCourt = document.getElementById("favoriteCourt").value;
+
+  if (playingStyle.length === 0) {
+    setError("Chọn ít nhất một lối chơi (Singles hoặc Doubles).");
+    return;
+  }
+  if (!favoriteCourt) {
+    setError("Chọn sân yêu thích của bạn.");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Đang lưu...`;
+
+  try {
+    await createPlayerProfile(currentUser.uid, {
+      displayName,
+      email: currentUser.email,
+      photoURL: currentUser.photoURL,
+      skillLevel,
+      playingStyle,
+      favoriteCourt,
+    });
+    window.location.replace("dashboard.html");
+  } catch (err) {
+    const denied = err?.code === "permission-denied";
+    if (denied) {
+      // Auth đã thành công; Rules Firestore không được phép khóa người dùng ngoài ứng dụng.
+      window.location.replace("dashboard.html");
+      return;
+    }
+    setError("Không lưu được hồ sơ, vui lòng thử lại.");
+    btn.disabled = false;
+    btn.innerHTML = `<span class="btn-label">Hoàn tất</span>`;
+  }
+});
+</script>
+</body>
+</html>

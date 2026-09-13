@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reclub · Nền tảng thể thao xã hội</title>
+  <!-- Tailwind + custom palette -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // new palette: deep indigo + coral + mint
+            brand: {
+              primary: '#4338ca',    // indigo-700
+              primaryLight: '#818cf8',
+              secondary: '#f97316',  // orange-500
+              accent: '#2dd4bf',     // teal-400
+              dark: '#1e1b4b',       // indigo-950
+              muted: '#e0e7ff',      // indigo-100
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Anybody', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+    h1, h2, h3, .font-display { font-family: 'Anybody', sans-serif; }
+    .hero-blob {
+      background: radial-gradient(circle at 80% 20%, rgba(67, 56, 202, 0.08) 0%, rgba(47, 128, 237, 0.03) 70%);
+    }
+    .slant-section {
+      clip-path: polygon(0 0, 100% 0, 100% 94%, 0 100%);
+    }
+    .card-hover {
+      transition: all 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(67, 56, 202, 0.08);
+    }
+    .badge-pill {
+      background: rgba(67, 56, 202, 0.08);
+      color: #4338ca;
+    }
+  </style>
+</head>
+<body class="antialiased overflow-x-hidden text-gray-800">
+
+<!-- HEADER (fixed) -->
+<header class="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 shadow-sm border-b border-indigo-100/40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center gap-2">
+        <a href="/vi" class="flex items-center gap-2">
+          <!-- brand icon -->
+          <svg class="w-8 h-8 text-brand-primary" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/>
+          </svg>
+          <span class="font-display font-bold text-xl text-brand-dark">Reclub</span>
+        </a>
+        <nav class="hidden md:flex ml-8 gap-8">
+          <a href="/vi/platform" class="text-sm font-medium text-gray-600 hover:text-brand-primary transition">Nền tảng</a>
+          <a href="/vi/communities" class="text-sm font-medium text-gray-600 hover:text-brand-primary transition">Cộng đồng</a>
+          <a href="/vi/sports" class="text-sm font-medium text-gray-600 hover:text-brand-primary transition">Môn thể thao</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="hidden sm:flex items-center gap-1 text-sm text-gray-600">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          Tiếng Việt
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="pt-32 pb-12 px-4 sm:px-6 lg:px-8 text-center hero-blob">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="font-display text-5xl md:text-7xl font-black text-brand-primary tracking-tight uppercase mb-6">
+      VÌ TÌNH YÊU TRÒ CHƠI
+    </h1>
+    <div class="flex flex-wrap justify-center gap-3 mb-4">
+      <a href="#" class="inline-block hover:opacity-80 transition"><img alt="App Store" class="h-12 rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIeC6OKFq9WNahxeh8Octg78HTqXYETidZfx4_yUOYmia3HHNW8xTS0k_2RKX8Bw4FYDPhwBL-tXI5ctb1dVbv-v8gLj8gYYk83Or-cW3weW1XMCvLCEqhTW2t0LK1DdxGhkckw4pDPT6uS2QZZ9AAlmrNotknFJ_V7qqtM1vcIZZrzjYQnMqTuOCiR-YIyeiyAuAPyOkg1sf0p67g6RMa1JExmp1dAtL27Xw6YsT77PYdQrln5DqR"/></a>
+      <a href="#" class="inline-block hover:opacity-80 transition"><img alt="Google Play" class="h-12 rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu1xEyfSTk0fNzbJ4I-eZtGcTDMXW2tFNP105zj1zc8IW8_tgGYCxkNsRPRXISxOUt3FXZ4TaFaLrVY7ddI3IRgSYLibs5WdHIwJSfCmfzQdvmSMswJmYKjsYyLe00VhsSrO_uUhiiV5D0fJrkOU6wFZxaM0b3ecERXgdIfjTSs2FGLv6lsluizO1jp_qYah5FgjfVg9dh7_jUdfb4jUGI_iliyoXpowHpPPJ0_GoxXu1GsRd-1hsT"/></a>
+    </div>
+    <a href="/vi/charter" class="text-sm font-medium text-brand-primary hover:underline">Đọc điều lệ</a>
+  </div>
+  <div class="mt-12 max-w-6xl mx-auto px-4">
+    <img alt="Sports community" class="w-full h-auto object-cover rounded-2xl shadow-xl" src="https://lh3.googleusercontent.com/aida/AP1WRLvAO9R0mDhpP5cSRER5xZ5-5WKknwroDna9w1O6YfpnyPz7Nt3ZwRB2mIXF3N7MiRTglAYl5GevRPBXnXOQXSUHO_N_uXY-7wRVBGmMgxBNfk5035g-sw8ZsMnq6fk6FAx9Z586emPxDtOTAG89Zu1JQMIAmRuC5QTMsdRGT_aaTwtltGbT9HZ99JY708MmzmOljRdU9DZGZx9HIsNvrq3sSUFW88DyqIIEOJWpkUqQ8n1KMFVWLbfcHKQ"/>
+  </div>
+</section>
+
+<!-- FEATURES (all tools) -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <!-- mockup -->
+    <div class="relative flex justify-center lg:justify-end order-2 lg:order-1">
+      <div class="relative w-full max-w-sm">
+        <div class="absolute inset-0 bg-brand-primary/10 rounded-full blur-3xl -translate-x-6 translate-y-8"></div>
+        <img alt="App interface" class="relative z-10 w-full h-auto drop-shadow-2xl rounded-3xl" src="https://lh3.googleusercontent.com/aida/AP1WRLs9dP9WxothhGb3QsFn5Spf8rrEse_a3624bS0M7Z2bKwzQfwbqzsFXVIw5Lx9TjEfxJD7qRuzbCtPk66gSHWKGAiKWqNLR71vKOfDOS0flCTVcbI-5gSti_WM-U6Tfm_WEprV6dYBn8jkm0Genp618j6yc9zPIYt8lhY3OCMhZceWzYzvTftjrRMI79L_04IW07HlLxT5-gQ3Pz-2MP8ddSPRC1lAeo4IqflOA8stqmJ9pt5I1UsNnpuE"/>
+      </div>
+    </div>
+    <!-- text -->
+    <div class="order-1 lg:order-2">
+      <h2 class="font-display text-4xl font-bold text-brand-dark mb-4">Tất Cả Công Cụ Bạn Cần</h2>
+      <p class="text-lg text-gray-600 mb-8">Điều hành câu lạc bộ, tổ chức các buổi gặp mặt, quản lý giải đấu và xây dựng cộng đồng của bạn - tất cả trong một nơi.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <!-- item 1 -->
+        <div class="card-hover">
+          <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center mb-3 text-brand-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-lg uppercase">Giải đấu</h3>
+          <p class="text-sm text-gray-600 my-1">Tạo và quản lý giải đấu dễ dàng. Đăng ký, sắp xếp trận đấu, theo dõi kết quả.</p>
+          <a href="#" class="text-sm font-semibold text-brand-primary hover:underline">Tìm hiểu thêm →</a>
+        </div>
+        <!-- item 2 -->
+        <div class="card-hover">
+          <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center mb-3 text-brand-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-lg uppercase">Cộng đồng</h3>
+          <p class="text-sm text-gray-600 my-1">Kết nối bạn bè yêu thể thao, chia sẻ niềm vui và lưu khoảnh khắc.</p>
+          <a href="#" class="text-sm font-semibold text-brand-primary hover:underline">Tìm hiểu thêm →</a>
+        </div>
+        <!-- item 3 -->
+        <div class="card-hover">
+          <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center mb-3 text-brand-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-lg uppercase">Câu lạc bộ</h3>
+          <p class="text-sm text-gray-600 my-1">Tất cả công cụ để kết nối người chơi, quản lý đội nhóm trong cùng ứng dụng.</p>
+          <a href="#" class="text-sm font-semibold text-brand-primary hover:underline">Tìm hiểu thêm →</a>
+        </div>
+        <!-- item 4 -->
+        <div class="card-hover">
+          <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center mb-3 text-brand-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" fill-rule="evenodd"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-lg uppercase">Kèo thể thao</h3>
+          <p class="text-sm text-gray-600 my-1">Chuẩn bị kèo, quản lý người chơi, danh sách chờ, phân chia đội.</p>
+          <a href="#" class="text-sm font-semibold text-brand-primary hover:underline">Tìm hiểu thêm →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM CTA -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-indigo-50/50 to-white">
+  <div class="max-w-6xl mx-auto bg-brand-primary/10 rounded-3xl p-8 md:p-12 relative overflow-hidden border border-brand-primary/10">
+    <div class="relative z-10">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+        <h2 class="font-display text-4xl font-bold text-brand-dark uppercase">Đã Có Đội Nhóm?</h2>
+        <a href="#" class="mt-4 md:mt-0 bg-brand-primary text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-indigo-800 transition">Tạo CLB</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="flex gap-4">
+          <svg class="w-6 h-6 text-brand-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div><h4 class="font-bold text-brand-dark uppercase">Bắt Đầu Trong Vài Phút</h4><p class="text-sm text-gray-600">Tạo câu lạc bộ ngay, mời cầu thủ. Không cài đặt phức tạp.</p></div>
+        </div>
+        <div class="flex gap-4">
+          <svg class="w-6 h-6 text-brand-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <div><h4 class="font-bold text-brand-dark uppercase">Tổ Chức Hoạt Động</h4><p class="text-sm text-gray-600">Lên lịch gặp mặt, giải đấu. Thông báo tự động.</p></div>
+        </div>
+        <div class="flex gap-4">
+          <svg class="w-6 h-6 text-brand-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <div><h4 class="font-bold text-brand-dark uppercase">Quản Lý Thành Viên</h4><p class="text-sm text-gray-600">Theo dõi tham dự, thu phí, phân đội, giao tiếp.</p></div>
+        </div>
+        <div class="flex gap-4">
+          <svg class="w-6 h-6 text-brand-primary flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          <div><h4 class="font-bold text-brand-dark uppercase">Phát Triển Cộng Đồng</h4><p class="text-sm text-gray-600">Kết nối với câu lạc bộ khác, khám phá cầu thủ mới.</p></div>
+        </div>
+      </div>
+    </div>
+    <img alt="" class="absolute bottom-0 left-0 w-full object-cover h-32 opacity-10 pointer-events-none" src="https://lh3.googleusercontent.com/aida/AP1WRLvAO9R0mDhpP5cSRER5xZ5-5WKknwroDna9w1O6YfpnyPz7Nt3ZwRB2mIXF3N7MiRTglAYl5GevRPBXnXOQXSUHO_N_uXY-7wRVBGmMgxBNfk5035g-sw8ZsMnq6fk6FAx9Z586emPxDtOTAG89Zu1JQMIAmRuC5QTMsdRGT_aaTwtltGbT9HZ99JY708MmzmOljRdU9DZGZx9HIsNvrq3sSUFW88DyqIIEOJWpkUqQ8n1KMFVWLbfcHKQ"/>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="font-display text-4xl font-bold text-brand-dark uppercase">Nơi Chúng Tôi Chơi</h2>
+    <p class="text-xl text-gray-600 mt-2 mb-8">Tham gia cùng hàng ngàn vận động viên đang chơi thể thao trong các cộng đồng trên toàn thế giới.</p>
+    <div class="w-full max-w-3xl mx-auto mb-6 relative">
+      <img alt="World map" class="w-full h-auto rounded-2xl shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUk8mU7SoSNXizsIoscmAmqJcLzap7e2C-1MZdnSNt7HvJVKbYI54jdSzrRYgvjvmHmTpGSC514o54WPXUX1NfZbdVR6Ia-PgolI48lQj1YsBcAv0Z8gnvOJAPCdFUgQVbMawSc_LGtxRrTzuv3HTGln9-csCZ5tOuDIqyawAwNYa49BLMyZC23w9F-eFYLVYd3EQD0f6GoqJM2F8j7Y6r_rI_AnAxeZrh9e3NMAYAW8Ws2hPND_RF"/>
+    </div>
+    <span class="font-display font-bold text-2xl text-brand-secondary">#WhereWePlay</span>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="py-24 px-4 sm:px-6 lg:px-8 bg-brand-dark text-white slant-section">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="font-display text-4xl md:text-5xl font-bold text-center uppercase mb-16">Người Hâm Mộ Nói Gì</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div class="flex flex-col gap-6">
+        <p class="text-lg italic text-indigo-200">"Reclub đã <strong class="text-white">thay đổi cuộc chơi</strong> cho cộng đồng bóng chuyền của chúng tôi. Nền tảng này giúp tổ chức các trận đấu và giữ mọi người kết nối rất dễ dàng."</p>
+        <div class="flex items-center gap-4">
+          <img alt="Hole Nguyen" class="w-16 h-16 rounded-full border-2 border-brand-secondary object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvWQRWWeC5PIS7Gm0BuMq858SIEMRjzrgvZtA2pP-kbAE2QNfk4WXyjF8sJ9c-AxG2hu_3cU0D4UUV4LTrTap-0J6Z6P0GtZxU62vDBBh2QLgdITjKWNuBvv2ZGEjmPvDhXW-UvUY5dz4RH-G8zYtgtl-Rh3jcA72MiNXXqaC92UXBplnOuG2KTE-pPzqKTeL2S_y5V3B5lhec4X8LC8vhwgubDJm-9HgXt_vg1yVKZlqXAMlsqJJb-unk"/>
+          <div><h4 class="font-bold">Hole Nguyen</h4><p class="text-sm text-indigo-300">Founder - Bay Area RC Volleyball</p></div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-6">
+        <p class="text-lg italic text-indigo-200">"Trình tạo đội, quản lý trận đấu, giải đấu và các tính năng thống kê khiến việc tổ chức câu lạc bộ thể thao của chúng tôi <strong class="text-white">rất dễ dàng!</strong>"</p>
+        <div class="flex items-center gap-4">
+          <img alt="Julián Kassler" class="w-16 h-16 rounded-full border-2 border-brand-secondary object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvAGE81PGfQILp5fgIwbYZvzyNpxiQuTrPyFILUH2Ag1GpxzDZTRvH4S2t5nhN4xzc5xAdELUOG5La1LaUDoVySiS2XkNXa5UrFdN98fP11mn-Ff6T5HJJlBBL5DitBxrXwmdtqv0VNicvSxyhoinTILL5UfY0Hh1ZfGMdSKR7wmL_y9ARXA7ahDrgxV46f2x4KcTCSD2oFEM7qUF1gmTILkRfwAcuenDJxRMeuvphWi292ba6fStj163o"/>
+          <div><h4 class="font-bold">Julián Kassler</h4><p class="text-sm text-indigo-300">President - Vietnam Flag Football League</p><a href="#" class="text-xs text-brand-secondary hover:underline">Đọc câu chuyện</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-wrap justify-between items-end border-b border-indigo-100 pb-4 mb-10">
+      <h2 class="font-display text-4xl font-black text-brand-dark uppercase tracking-tight">WHY WE PLAY</h2>
+      <a href="#" class="text-sm font-medium text-brand-primary hover:underline">Đọc điều lệ</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div class="text-center p-6 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50/60 transition">
+        <div class="w-20 h-20 mx-auto bg-brand-primary/10 rounded-full flex items-center justify-center mb-4 text-brand-primary">
+          <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl uppercase">Đoàn Kết</h3>
+        <p class="text-gray-600">Thể thao gắn kết mọi người bất kể xuất thân. Khi là một phần của đội, đó là cảm giác đặc biệt.</p>
+      </div>
+      <div class="text-center p-6 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50/60 transition">
+        <div class="w-20 h-20 mx-auto bg-brand-secondary/10 rounded-full flex items-center justify-center mb-4 text-brand-secondary">
+          <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl uppercase">Vui Vẻ</h3>
+        <p class="text-gray-600">Tình bạn, mục tiêu chung, chiến thắng - đó là điều thúc đẩy chúng ta chơi.</p>
+      </div>
+      <div class="text-center p-6 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50/60 transition">
+        <div class="w-20 h-20 mx-auto bg-brand-accent/10 rounded-full flex items-center justify-center mb-4 text-brand-accent">
+          <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" fill-rule="evenodd"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl uppercase">Thể Chất + Tinh Thần</h3>
+        <p class="text-gray-600">Thể thao kích hoạt cơ thể và tâm trí. Hãy vận động để có một bản thân tốt hơn.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-gray-300 pt-16 pb-6 border-t-8 border-brand-primary/40" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEsFOn6Irg8fzNaj2elZhtIW8JlarYrXrfT0zqk-frLcfgwlbFn6--3uUZjXIkt-nN_2_8uHXPgnmdjcTC4kxlpjhFCKnQeZhbf_Xo8Em_hVSGLwTzBFIovC1TiYWhh8G1RWHSliaBrIubVgoJIQSY8pXJJwe4IVVxN4a0XC7KTr63lgBNzPAffjXzuMuX0xmUj-ScbJKSnXml1JjS4EqXi-Nz_4ZT_HoFH2b1cjCXo7OkfdSpCk_f'); background-repeat: repeat-x; background-position: center top; background-size: cover; background-attachment: fixed;">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 px-4 sm:px-6 lg:px-8">
+    <!-- brand -->
+    <div class="col-span-1 md:col-span-2">
+      <a href="#" class="flex items-center gap-2 mb-3">
+        <svg class="w-8 h-8 text-brand-secondary" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>
+        <span class="font-display font-bold text-2xl text-white">Reclub</span>
+      </a>
+      <p class="text-sm text-gray-400 max-w-sm">Nền tảng trao quyền cho cộng đồng thể thao. Được xây dựng cho tất cả chúng ta, vì tình yêu dành cho trò chơi.</p>
+      <div class="flex space-x-4 mt-6">
+        <a href="#" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="text-gray-400 hover:text-white" aria-label="GitHub"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.374 0 0 5.373 0 12a12 12 0 008.207 11.387c.6.111.82-.261.82-.58 0-.287-.01-1.244-.015-2.252-3.338.726-4.042-1.61-4.042-1.61-.546-1.386-1.333-1.755-1.333-1.755-1.089-.744.083-.729.083-.729 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.49.998.108-.775.418-1.305.76-1.605-2.665-.303-5.467-1.332-5.467-5.93 0-1.31.468-2.381 1.236-3.221-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.301 1.23A11.48 11.48 0 0112 5.844c1.02 0 2.047.138 3.006.404 2.291-1.553 3.298-1.23 3.298-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.221 0 4.607-2.807 5.623-5.479 5.922.431.372.814 1.103.814 2.222 0 1.604-.014 2.898-.014 3.293 0 .322.216.697.825.578A12 12 0 0024 12c0-6.627-5.374-12-12-12z"/></svg></a>
+        <a href="#" class="text-gray-400 hover:text-white" aria-label="Twitter"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+      </div>
+    </div>
+    <!-- links 1 -->
+    <div>
+      <h4 class="font-display font-bold text-sm text-gray-400 uppercase tracking-wider">NỀN TẢNG</h4>
+      <ul class="space-y-3 mt-4">
+        <li><a href="teams.html" class="text-sm hover:text-white transition">CÂU LẠC BỘ</a></li>
+        <li><a href="tournaments.html" class="text-sm hover:text-white transition">GIẢI ĐẤU</a></li>
+        <li><a href="https://reclub.vn/meetups" class="text-sm hover:text-white transition">BUỔI GẶP MẶT</a></li>
+        <li><a href="https://reclub.vn/community" class="text-sm hover:text-white transition">CỘNG ĐỒNG</a></li>
+      </ul>
+    </div>
+    <!-- links 2 -->
+    <div>
+      <h4 class="font-display font-bold text-sm text-gray-400 uppercase tracking-wider">CÔNG TY</h4>
+      <ul class="space-y-3 mt-4">
+        <li><a href="#" class="text-sm hover:text-white transition">TUYỂN DỤNG</a></li>
+        <li><a href="#" class="text-sm hover:text-white transition">ĐIỀU LỆ</a></li>
+        <li><a href="#" class="text-sm hover:text-white transition">TIÊU CHUẨN CỘNG ĐỒNG</a></li>
+        <li><a href="#" class="text-sm hover:text-white transition">ĐIỀU KHOẢN DỊCH VỤ</a></li>
+        <li><a href="#" class="text-sm hover:text-white transition">CHÍNH SÁCH BẢO MẬT</a></li>
+      </ul>
+    </div>
+  </div>
+  <!-- bottom bar -->
+  <div class="border-t border-indigo-800/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <p class="text-xs text-gray-500">© 2026 Reclub. Bảo lưu mọi quyền</p>
+    <div class="flex gap-3">
+      <a href="#"><img alt="App Store" class="h-9 rounded" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcXf8PvP2-V-kPvFSM__O8S1aiUA5zRYRsPIe9uXP0IQsRXIvn6881Ic-eB_FXrAhLel9EEj9WDjVedBiZ4_ljtPTck2QZrg0kd2jWGOnSDpOF2Sef7_ubn7IXrdDst6TeEhM_a2eS-kPTtqkXV1EijJUDz1bgolohdZcFYWvVWdteJPYrsIYo-H1Yv-frfSqxDPQQGU_oj2DuzMNlHbWNJNuWwn7P-72-_hBRW8ul56lEAIj8cJZO"/></a>
+      <a href="#"><img alt="Google Play" class="h-9 rounded" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBydR9eySuhVOBa5Ey8AWYu_FD7HEJQf8-bBdXsdr20WZgQlhURt7tAzNMLCmvcqjoJZAAxLSE92AV7htHU335m-o4G3iFUzGQoOkIbRPDeK2YOuTTFkT5o1MgEbhyijnRIJMUcVj0uPPaQV0mghUs9RJg0Dek_dMldaE1v47T-BNyrLcA8GbABMi0EkcF_OVroUbzzcpB6gvSonneJOyTtgtiIGllO-fe5lyN3IoVf9YyamXy-_k65"/></a>
+    </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

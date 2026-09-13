@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reclub · Đăng nhập / Đăng ký</title>
+  <!-- Tailwind + custom palette -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: '#4338ca',    // indigo-700
+              primaryLight: '#818cf8',
+              secondary: '#f97316',  // orange-500
+              accent: '#2dd4bf',     // teal-400
+              dark: '#1e1b4b',       // indigo-950
+              muted: '#e0e7ff',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Anybody', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-card {
+      background: white;
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(67, 56, 202, 0.15);
+      transition: all 0.3s ease;
+    }
+    .toggle-btn {
+      transition: all 0.2s ease;
+      font-weight: 600;
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
+      background: transparent;
+      color: #64748b;
+      border: 1px solid transparent;
+    }
+    .toggle-btn.active {
+      background: #4338ca;
+      color: white;
+      box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25);
+    }
+    .toggle-btn:not(.active):hover {
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+    .input-field {
+      transition: all 0.2s ease;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 1rem;
+      padding: 0.75rem 1.25rem;
+      width: 100%;
+      font-size: 0.95rem;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #4338ca;
+      box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.08);
+      background: white;
+    }
+    .input-field::placeholder {
+      color: #94a3b8;
+    }
+    .submit-btn {
+      background: #4338ca;
+      color: white;
+      font-weight: 700;
+      padding: 0.9rem;
+      border-radius: 9999px;
+      width: 100%;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(67, 56, 202, 0.25);
+    }
+    .submit-btn:hover {
+      background: #3730a3;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(67, 56, 202, 0.3);
+    }
+    .brand-icon {
+      color: #4338ca;
+    }
+    .form-panel {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .form-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .toggle-wrapper {
+      background: #f1f5f9;
+      border-radius: 9999px;
+      padding: 0.25rem;
+      display: inline-flex;
+      border: 1px solid #e2e8f0;
+    }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .social-icon {
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 9999px;
+      border: 1.5px solid #e2e8f0;
+      color: #475569;
+    }
+    .social-icon:hover {
+      border-color: #4338ca;
+      color: #4338ca;
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="w-full max-w-md px-4 py-8">
+  <!-- card -->
+  <div class="auth-card p-8 md:p-10">
+
+    <!-- brand header -->
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <svg class="w-9 h-9 brand-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/>
+      </svg>
+      <span class="font-display font-bold text-2xl text-brand-dark">Reclub</span>
+    </div>
+
+    <!-- toggle switch -->
+    <div class="flex justify-center mb-8">
+      <div class="toggle-wrapper">
+        <button id="loginTab" class="toggle-btn active" type="button">Đăng nhập</button>
+        <button id="registerTab" class="toggle-btn" type="button">Đăng ký</button>
+      </div>
+    </div>
+
+    <!-- ============ LOGIN PANEL ============ -->
+    <div id="loginPanel" class="form-panel active">
+      <form id="testLoginForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+            <input type="email" class="input-field" placeholder="name@example.com" required value="demo@reclub.co">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
+            <input type="password" class="input-field" placeholder="••••••••" required value="password123">
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center gap-2 text-gray-600">
+              <input type="checkbox" class="accent-brand-primary w-4 h-4"> Ghi nhớ
+            </label>
+            <a href="#" class="text-brand-primary font-medium hover:underline">Quên mật khẩu?</a>
+          </div>
+          <button type="submit" class="submit-btn">Đăng nhập</button>
+        </div>
+      </form>
+
+      <div class="or-divider my-6">hoặc</div>
+
+      <div class="flex justify-center gap-4">
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+      </div>
+
+      <div class="mt-4 flex justify-center">
+        <button type="button" class="w-full flex items-center justify-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-brand-primary hover:text-brand-primary">
+          <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.62l6.85-6.85C35.16 2.5 30.12 0 24 0 14.64 0 6.62 5.38 2.58 13.2l7.98 6.2C12.24 13.72 17.6 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24.55c0-1.64-.15-3.21-.42-4.73H24v9h12.7c-.55 2.97-2.22 5.49-4.75 7.18l7.7 5.97C43.82 37.4 46.5 31.46 46.5 24.55z"/>
+            <path fill="#FBBC05" d="M32.95 36.9c-2.03 1.38-4.63 2.19-8.95 2.19-6.4 0-11.76-4.22-13.68-9.88l-8.08 6.27C5.1 42.68 13.86 48 24 48c7.4 0 13.61-2.43 18.15-6.6l-9.2-4.5z"/>
+            <path fill="#34A853" d="M11.32 29.22A14.4 14.4 0 0 1 10.6 24c0-1.48.26-2.9.72-4.22l-8.08-6.27A23.5 23.5 0 0 0 0 24c0 3.8.9 7.4 2.52 10.5l8.8-6.27z"/>
+            <path fill="#34A853" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.62l6.85-6.85C35.16 2.5 30.12 0 24 0 14.64 0 6.62 5.38 2.58 13.2l7.98 6.2C12.24 13.72 17.6 9.5 24 9.5z" opacity="0"/>
+          </svg>
+          Đăng nhập bằng Google
+        </button>
+      </div>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Chưa có tài khoản? <button type="button" id="switchToRegister" class="text-brand-primary font-semibold hover:underline">Đăng ký ngay</button>
+      </p>
+    </div>
+
+    <!-- ============ REGISTER PANEL ============ -->
+    <div id="registerPanel" class="form-panel">
+      <form id="testRegisterForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Họ &amp; tên</label>
+            <input type="text" class="input-field" placeholder="Nguyễn Văn A" required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+            <input type="email" class="input-field" placeholder="name@example.com" required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu</label>
+            <input type="password" class="input-field" placeholder="Tối thiểu 8 ký tự" required minlength="8">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Xác nhận mật khẩu</label>
+            <input type="password" class="input-field" placeholder="Nhập lại mật khẩu" required>
+          </div>
+          <div class="flex items-start gap-2 text-sm text-gray-600">
+            <input type="checkbox" class="accent-brand-primary w-4 h-4 mt-0.5" required>
+            <span>Tôi đồng ý với <a href="#" class="text-brand-primary font-medium hover:underline">Điều khoản dịch vụ</a> và <a href="#" class="text-brand-primary font-medium hover:underline">Chính sách bảo mật</a></span>
+          </div>
+          <button type="submit" class="submit-btn">Tạo tài khoản</button>
+        </div>
+      </form>
+
+      <div class="or-divider my-6">hoặc</div>
+
+      <div class="flex justify-center gap-4">
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        <a href="#" class="social-icon"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+      </div>
+
+      <div class="mt-4 flex justify-center">
+        <button type="button" class="w-full flex items-center justify-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-brand-primary hover:text-brand-primary">
+          <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.62l6.85-6.85C35.16 2.5 30.12 0 24 0 14.64 0 6.62 5.38 2.58 13.2l7.98 6.2C12.24 13.72 17.6 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24.55c0-1.64-.15-3.21-.42-4.73H24v9h12.7c-.55 2.97-2.22 5.49-4.75 7.18l7.7 5.97C43.82 37.4 46.5 31.46 46.5 24.55z"/>
+            <path fill="#FBBC05" d="M32.95 36.9c-2.03 1.38-4.63 2.19-8.95 2.19-6.4 0-11.76-4.22-13.68-9.88l-8.08 6.27C5.1 42.68 13.86 48 24 48c7.4 0 13.61-2.43 18.15-6.6l-9.2-4.5z"/>
+            <path fill="#34A853" d="M11.32 29.22A14.4 14.4 0 0 1 10.6 24c0-1.48.26-2.9.72-4.22l-8.08-6.27A23.5 23.5 0 0 0 0 24c0 3.8.9 7.4 2.52 10.5l8.8-6.27z"/>
+            <path fill="#34A853" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.62l6.85-6.85C35.16 2.5 30.12 0 24 0 14.64 0 6.62 5.38 2.58 13.2l7.98 6.2C12.24 13.72 17.6 9.5 24 9.5z" opacity="0"/>
+          </svg>
+          Đăng ký bằng Google
+        </button>
+      </div>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Đã có tài khoản? <button type="button" id="switchToLogin" class="text-brand-primary font-semibold hover:underline">Đăng nhập</button>
+      </p>
+    </div>
+
+  </div>
+  <!-- footer note -->
+  <p class="text-center text-xs text-gray-400 mt-4">© 2026 Reclub · Bảo mật &amp; Điều khoản</p>
+</div>
+
+<!-- toggle script -->
+<script>
+  (function() {
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+    const switchToRegister = document.getElementById('switchToRegister');
+    const switchToLogin = document.getElementById('switchToLogin');
+
+    function activateLogin() {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      loginPanel.classList.add('active');
+      registerPanel.classList.remove('active');
+    }
+
+    function activateRegister() {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      registerPanel.classList.add('active');
+      loginPanel.classList.remove('active');
+    }
+
+    loginTab.addEventListener('click', activateLogin);
+    registerTab.addEventListener('click', activateRegister);
+    switchToRegister.addEventListener('click', activateRegister);
+    switchToLogin.addEventListener('click', activateLogin);
+  })();
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpD0iha2sLAk3fMMxELGSLzuJdyCkAmL4",
+    authDomain: "reclub-8206e.firebaseapp.com",
+    projectId: "reclub-8206e",
+    storageBucket: "reclub-8206e.firebasestorage.app",
+    messagingSenderId: "410587996077",
+    appId: "1:410587996077:web:f4c8a066d071008e2b0b24",
+    measurementId: "G-4ZKT1MB4RC"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const appUrl = "../files/rally-app-phase1/rally-app/";
+
+  document.getElementById("testLoginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const fields = event.currentTarget.querySelectorAll("input");
+    const button = event.currentTarget.querySelector("button[type=submit]");
+    button.disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, fields[0].value.trim(), fields[1].value);
+      window.location.href = `${appUrl}dashboard.html`;
+    } catch (error) {
+      alert("Đăng nhập không thành công: " + (error.code || "lỗi không xác định"));
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById("testRegisterForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const fields = event.currentTarget.querySelectorAll("input");
+    const button = event.currentTarget.querySelector("button[type=submit]");
+    if (fields[2].value !== fields[3].value) {
+      alert("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+    button.disabled = true;
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, fields[1].value.trim(), fields[2].value);
+      await updateProfile(credential.user, { displayName: fields[0].value.trim() });
+      window.location.href = `${appUrl}onboarding.html`;
+    } catch (error) {
+      alert("Đăng ký không thành công: " + (error.code || "lỗi không xác định"));
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

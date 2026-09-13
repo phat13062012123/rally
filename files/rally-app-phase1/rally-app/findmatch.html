@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tìm trận — Rally</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: transform .15s;
+  }
+  .user-avatar:hover { transform: scale(1.08); }
+  .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+  /* Profile Modal */
+  .profile-modal {
+    display: none; position: absolute; top: 64px; right: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; width: 380px; box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    z-index: 100;
+  }
+  .profile-modal.show { display: block; }
+  .profile-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .profile-modal-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 17px; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .profile-modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-modal-info h3 { font-size: 16px; margin-bottom: 2px; }
+  .profile-modal-info .meta { font-size: 12px; color: var(--text-secondary); }
+
+  .profile-modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .profile-modal-stat { text-align: center; }
+  .profile-modal-stat .num { font-family: var(--font-mono); font-weight: 600; font-size: 18px; }
+  .profile-modal-stat .label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .profile-modal-actions { display: flex; flex-direction: column; gap: 8px; }
+  .profile-modal-actions a, .profile-modal-actions button {
+    padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 13.5px; font-weight: 600; text-align: center;
+    transition: all .15s; color: var(--ink); text-decoration: none; display: block;
+  }
+  .profile-modal-actions a:hover, .profile-modal-actions button:hover { background: var(--bg); }
+  .profile-modal-actions .logout { border-color: var(--danger); color: var(--danger); }
+  .profile-modal-actions .logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+  @media (max-width: 600px) {
+    .profile-modal { width: calc(100vw - 32px); right: 50%; transform: translateX(50%); }
+  }
+
+  .page-head { padding: 40px 0 8px; }
+  .page-head .eyebrow { font-family: var(--font-mono); font-size: 12.5px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .page-head h1 { font-family: var(--font-display); font-size: 30px; }
+  .page-head p { color: var(--text-secondary); margin-top: 6px; font-size: 15px; }
+
+  .filter-bar {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 18px 20px; margin: 28px 0 32px;
+  }
+  .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+  .filter-item label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .filter-item .select, .filter-item .input { padding: 10px 12px; font-size: 13.5px; }
+  .filter-toggle { display: flex; align-items: center; gap: 8px; padding-bottom: 11px; }
+  .filter-toggle input { width: 16px; height: 16px; accent-color: var(--primary); }
+  .filter-toggle label { font-size: 13.5px; color: var(--text-secondary); cursor: pointer; }
+  .filter-reset { margin-left: auto; align-self: center; }
+
+  .match-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 60px; }
+  .match-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color .15s, transform .15s;
+  }
+  .match-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .match-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .match-card h3 { font-family: var(--font-display); font-size: 17px; }
+  .badge-skill {
+    flex-shrink: 0; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+    padding: 3px 9px; border-radius: 100px; background: var(--primary-light); color: var(--primary);
+    white-space: nowrap;
+  }
+  .match-card .meta-line { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .slot-bar { display: flex; gap: 3px; margin-top: 4px; }
+  .slot { flex: 1; height: 7px; border-radius: 4px; background: var(--primary-light); }
+  .slot.filled { background: var(--primary); }
+  .slot-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; margin-top: 6px; }
+  .slot-label b { color: var(--ink); font-weight: 600; }
+  .match-card .price { font-size: 13px; color: var(--text-secondary); }
+  .match-card .full-tag { font-size: 12px; font-weight: 600; color: #c43d3d; }
+  .match-card .btn { margin-top: 4px; }
+
+  .state-box { text-align: center; padding: 70px 20px; color: var(--text-secondary); }
+  .state-box .ic { font-size: 32px; margin-bottom: 10px; }
+  .state-box p { font-size: 14px; }
+
+  @media (max-width: 980px) { .match-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) {
+    .match-grid { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .filter-reset { margin-left: 0; align-self: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="pageLoader">
+  <div class="spinner spinner-dark" style="width:28px;height:28px;"></div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+  <nav class="navbar">
+    <div class="wrap">
+      <div class="logo">Rally</div>
+      <div class="nav-links">
+        <a href="findmatch.html" class="active">🔎 Tìm trận</a>
+        <a href="findcourt.html">📍 Tìm sân</a>
+        <a href="creatematch.html">➕ Tạo trận</a>
+        <a href="#">💬 Trò chuyện</a>
+        <a href="#">🔔 Thông báo</a>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar" id="userAvatar" title="Hồ sơ cá nhân" onclick="toggleProfileModal(event)">?</div>
+        <div class="profile-modal" id="profileModal">
+          <div class="profile-modal-header">
+            <div class="profile-modal-avatar" id="modalAvatar">?</div>
+            <div class="profile-modal-info">
+              <h3 id="modalName">—</h3>
+              <div class="meta" id="modalMeta">—</div>
+            </div>
+          </div>
+          <div class="profile-modal-stats">
+            <div class="profile-modal-stat">
+              <div class="num" id="modalMatches">0</div>
+              <div class="label">Trận</div>
+            </div>
+            <div class="profile-modal-stat">
+              <div class="num" id="modalPlayers">0</div>
+              <div class="label">Đã gặp</div>
+            </div>
+            <div class="profile-modal-stat">
+              <div class="num" id="modalRating">0</div>
+              <div class="label">Đánh giá</div>
+            </div>
+          </div>
+          <div class="profile-modal-actions">
+            <button class="logout" onclick="handleLogout()">Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="page-head">
+      <div class="eyebrow">Find Match</div>
+      <h1>Tìm trận đang tuyển người</h1>
+      <p>Lọc theo khu vực, trình độ và ngày chơi để tìm trận phù hợp với bạn.</p>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-item">
+        <label>Khu vực</label>
+        <select class="select" id="filterArea">
+          <option value="">Tất cả khu vực</option>
+          <option>Quận 1</option>
+          <option>Quận 3</option>
+          <option>Quận 7</option>
+          <option>Quận 8</option>
+          <option>Quận 10</option>
+          <option>Quận Tân Bình</option>
+          <option>Quận Bình Thạnh</option>
+          <option>Thành phố Thủ Đức</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>Trình độ</label>
+        <select class="select" id="filterSkill">
+          <option value="All">Tất cả trình độ</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>Ngày</label>
+        <input type="date" class="input" id="filterDate">
+      </div>
+      <div class="filter-toggle">
+        <input type="checkbox" id="filterOnlyOpen" checked>
+        <label for="filterOnlyOpen">Chỉ hiện trận còn chỗ</label>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm filter-reset" id="resetFilters">Xoá lọc</button>
+    </div>
+
+    <div id="matchListArea">
+      <div class="state-box" id="loadingState">
+        <div class="ic">⏳</div>
+        <p>Đang tải danh sách trận...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
+import { listenToMatches, formatMatchDate } from "./match-service.js";
+import { getPlayerProfile } from "../js/profile-service.js";
+
+function initials(name) {
+  return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function toggleProfileModal(event) {
+  event.stopPropagation();
+  const modal = document.getElementById("profileModal");
+  modal.classList.toggle("show");
+}
+
+// Close modal when clicking outside
+document.addEventListener("click", (e) => {
+  const modal = document.getElementById("profileModal");
+  const userMenu = document.querySelector(".user-menu");
+  if (modal && !userMenu.contains(e.target)) {
+    modal.classList.remove("show");
+  }
+});
+
+function loadProfile() {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    try {
+      const profile = await Promise.race([
+        getPlayerProfile(user.uid),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("PROFILE_READ_TIMEOUT")), 5000);
+        }),
+      ]);
+      if (profile) {
+        const name = profile.displayName || user.displayName || user.email;
+        const styles = Array.isArray(profile.playingStyle) ? profile.playingStyle.join(" · ") : "";
+        const metaParts = [profile.skillLevel, styles, profile.favoriteCourt].filter(Boolean);
+        const metaText = metaParts.join(" · ") || "Hoàn tất hồ sơ để hiện trình độ";
+
+        document.getElementById("modalName").textContent = name;
+        document.getElementById("modalMeta").textContent = metaText;
+        document.getElementById("modalMatches").textContent = profile.matchesPlayed ?? 0;
+        document.getElementById("modalPlayers").textContent = profile.playersMet ?? 0;
+        document.getElementById("modalRating").textContent = profile.rating ?? 0;
+
+        const avatarInitials = initials(name);
+        const avatarEls = [document.getElementById("userAvatar"), document.getElementById("modalAvatar")];
+        avatarEls.forEach((el) => {
+          if (profile.photoURL) {
+            el.innerHTML = `<img src="${profile.photoURL}" alt="${name}">`;
+          } else {
+            el.textContent = avatarInitials;
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Không đọc được hồ sơ:", err);
+    }
+  });
+}
+
+loadProfile();
+
+let unsubscribeMatches = null;
+
+const listArea = document.getElementById("matchListArea");
+const filterArea = document.getElementById("filterArea");
+const filterSkill = document.getElementById("filterSkill");
+const filterDate = document.getElementById("filterDate");
+const filterOnlyOpen = document.getElementById("filterOnlyOpen");
+
+function currentFilters() {
+  return {
+    area: filterArea.value || null,
+    skillLevel: filterSkill.value,
+    date: filterDate.value || null,
+  };
+}
+
+function renderMatchCard(m) {
+  const isFull = (m.currentPlayers ?? 0) >= (m.maxPlayers ?? 0);
+  const total = m.maxPlayers ?? 0;
+  const filled = Math.min(m.currentPlayers ?? 0, total);
+  const slots = Array.from({ length: total }, (_, i) =>
+    `<div class="slot ${i < filled ? "filled" : ""}"></div>`
+  ).join("");
+  const priceLabel = m.pricePerPerson
+    ? `${Number(m.pricePerPerson).toLocaleString("vi-VN")}đ / người`
+    : "Miễn phí / tự thoả thuận";
+
+  return `
+    <div class="match-card">
+      <div class="top-row">
+        <h3>${escapeHtml(m.title || "Trận chưa đặt tên")}</h3>
+        <span class="badge-skill">${escapeHtml(m.skillLevel || "All")}</span>
+      </div>
+      <div class="meta-line">📍 ${escapeHtml(m.courtName || "")}${m.area ? " · " + escapeHtml(m.area) : ""}</div>
+      <div class="meta-line">🗓️ ${formatMatchDate(m.date)} · ${escapeHtml(m.startTime || "")}–${escapeHtml(m.endTime || "")}</div>
+      <div class="slot-bar">${slots}</div>
+      <div class="slot-label"><span><b>${filled}/${total}</b> người chơi</span>${isFull ? '<span class="full-tag">Đã đủ người</span>' : ""}</div>
+      <div class="price">${priceLabel}</div>
+      <button type="button" class="btn ${isFull ? "btn-outline" : "btn-primary"} btn-block" ${isFull ? "disabled" : ""}>
+        ${isFull ? "Đã đủ người" : "Tham gia trận"}
+      </button>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function renderMatches(matches) {
+  const onlyOpen = filterOnlyOpen.checked;
+  const visible = onlyOpen
+    ? matches.filter((m) => (m.currentPlayers ?? 0) < (m.maxPlayers ?? 0))
+    : matches;
+
+  if (visible.length === 0) {
+    listArea.innerHTML = `
+      <div class="state-box">
+        <div class="ic">🏸</div>
+        <p>Không tìm thấy trận nào khớp bộ lọc hiện tại.<br>Thử đổi khu vực, ngày, hoặc bỏ bớt điều kiện lọc.</p>
+      </div>`;
+    return;
+  }
+
+  listArea.innerHTML = `<div class="match-grid">${visible.map(renderMatchCard).join("")}</div>`;
+}
+
+function subscribe() {
+  if (unsubscribeMatches) unsubscribeMatches();
+  listArea.innerHTML = `
+    <div class="state-box" id="loadingState">
+      <div class="ic">⏳</div>
+      <p>Đang tải danh sách trận...</p>
+    </div>`;
+
+  unsubscribeMatches = listenToMatches(
+    currentFilters(),
+    (matches) => renderMatches(matches),
+    () => {
+      listArea.innerHTML = `
+        <div class="state-box">
+          <div class="ic">⚠️</div>
+          <p>Không tải được danh sách trận. Vui lòng thử lại sau.<br>
+          (Nếu đây là lần đầu chạy, mở Console trình duyệt — Firestore có thể
+          yêu cầu tạo composite index, chỉ cần bấm vào link trong lỗi.)</p>
+        </div>`;
+    }
+  );
+}
+
+[filterArea, filterSkill, filterDate].forEach((el) => el.addEventListener("change", subscribe));
+filterOnlyOpen.addEventListener("change", subscribe);
+document.getElementById("resetFilters").addEventListener("click", () => {
+  filterArea.value = "";
+  filterSkill.value = "All";
+  filterDate.value = "";
+  filterOnlyOpen.checked = true;
+  subscribe();
+});
+
+// Read area query parameter from URL (e.g., from findcourt.html link)
+const urlParams = new URLSearchParams(window.location.search);
+const areaParam = urlParams.get("area");
+if (areaParam) {
+  filterArea.value = areaParam;
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("auth.html");
+    return;
+  }
+  document.getElementById("pageLoader").style.display = "none";
+  document.getElementById("appContent").style.display = "block";
+  subscribe();
+});
+
+window.toggleProfileModal = toggleProfileModal;
+window.handleLogout = async () => {
+  if (confirm("Đăng xuất khỏi Rally?")) {
+    await signOut(auth);
+    window.location.href = "auth.html";
+  }
+};
+</script>
+</body>
+</html>

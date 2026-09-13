@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tạo trận — Rally</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: transform .15s;
+  }
+  .user-avatar:hover { transform: scale(1.08); }
+  .user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+  /* Profile Modal */
+  .profile-modal {
+    display: none; position: absolute; top: 64px; right: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; width: 380px; box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    z-index: 100;
+  }
+  .profile-modal.show { display: block; }
+  .profile-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .profile-modal-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 17px; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .profile-modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-modal-info h3 { font-size: 16px; margin-bottom: 2px; }
+  .profile-modal-info .meta { font-size: 12px; color: var(--text-secondary); }
+
+  .profile-modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .profile-modal-stat { text-align: center; }
+  .profile-modal-stat .num { font-family: var(--font-mono); font-weight: 600; font-size: 18px; }
+  .profile-modal-stat .label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .profile-modal-actions { display: flex; flex-direction: column; gap: 8px; }
+  .profile-modal-actions a, .profile-modal-actions button {
+    padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 13.5px; font-weight: 600; text-align: center;
+    transition: all .15s; color: var(--ink); text-decoration: none; display: block;
+  }
+  .profile-modal-actions a:hover, .profile-modal-actions button:hover { background: var(--bg); }
+  .profile-modal-actions .logout { border-color: var(--danger); color: var(--danger); }
+  .profile-modal-actions .logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+  @media (max-width: 600px) {
+    .profile-modal { width: calc(100vw - 32px); right: 50%; transform: translateX(50%); }
+  }
+
+  .page-head { padding: 40px 0 8px; }
+  .page-head .eyebrow { font-family: var(--font-mono); font-size: 12.5px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .page-head h1 { font-family: var(--font-display); font-size: 30px; }
+  .page-head p { color: var(--text-secondary); margin-top: 6px; font-size: 15px; }
+
+  .form-shell { max-width: 620px; margin: 28px 0 60px; }
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
+  .form-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+  .form-section + .form-section { margin-top: 26px; padding-top: 26px; border-top: 1px solid var(--border); }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field-row .field { margin-bottom: 0; }
+
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper button {
+    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 16px; font-weight: 700; color: var(--ink); background: var(--surface);
+  }
+  .stepper button:hover { border-color: var(--primary); color: var(--primary); }
+  .stepper .val { font-family: var(--font-mono); font-size: 16px; font-weight: 600; min-width: 28px; text-align: center; }
+
+  .price-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="pageLoader">
+  <div class="spinner spinner-dark" style="width:28px;height:28px;"></div>
+</div>
+
+<div id="appContent" style="display:none;">
+
+  <nav class="navbar">
+    <div class="wrap">
+      <div class="logo">Rally</div>
+      <div class="nav-links">
+        <a href="findmatch.html">🔎 Tìm trận</a>
+        <a href="findcourt.html">📍 Tìm sân</a>
+        <a href="creatematch.html" class="active">➕ Tạo trận</a>
+        <a href="#">� Trò chuyện</a>
+        <a href="#">🔔 Thông báo</a>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar" id="userAvatar" title="Hồ sơ cá nhân" onclick="toggleProfileModal(event)">?</div>
+        <div class="profile-modal" id="profileModal">
+          <div class="profile-modal-header">
+            <div class="profile-modal-avatar" id="modalAvatar">?</div>
+            <div class="profile-modal-info">
+              <h3 id="modalName">—</h3>
+              <div class="meta" id="modalMeta">—</div>
+            </div>
+          </div>
+          <div class="profile-modal-stats">
+            <div class="profile-modal-stat">
+              <div class="num" id="modalMatches">0</div>
+              <div class="label">Trận</div>
+            </div>
+            <div class="profile-modal-stat">
+              <div class="num" id="modalPlayers">0</div>
+              <div class="label">Đã gặp</div>
+            </div>
+            <div class="profile-modal-stat">
+              <div class="num" id="modalRating">0</div>
+              <div class="label">Đánh giá</div>
+            </div>
+          </div>
+          <div class="profile-modal-actions">
+            <button class="logout" onclick="handleLogout()">Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div class="page-head">
+      <div class="eyebrow">Create Match</div>
+      <h1>Tạo trận mới</h1>
+      <p>Đăng trận để tuyển người — bạn sẽ tự động là người chơi đầu tiên và là host.</p>
+    </div>
+
+    <div class="form-shell">
+      <div class="error-box" id="errorBox"></div>
+
+      <form id="createForm" class="form-card">
+
+        <div class="form-section">
+          <h2>Thông tin trận</h2>
+          <div class="field">
+            <label>Tên trận</label>
+            <input class="input" type="text" id="title" placeholder="VD: Saturday Smash" required>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Khu vực</label>
+              <select class="select" id="area" required>
+                <option value="">Chọn khu vực</option>
+                <option>Quận 1</option>
+                <option>Quận 3</option>
+                <option>Quận 7</option>
+                <option>Quận 8</option>
+                <option>Quận 10</option>
+                <option>Quận Tân Bình</option>
+                <option>Quận Bình Thạnh</option>
+                <option>Thành phố Thủ Đức</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tên sân</label>
+              <input class="input" type="text" id="courtName" placeholder="VD: Sân Lăng Cha Cả" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Thời gian</h2>
+          <div class="field-row">
+            <div class="field">
+              <label>Ngày chơi</label>
+              <input class="input" type="date" id="date" required>
+            </div>
+            <div class="field"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Giờ bắt đầu</label>
+              <input class="input" type="time" id="startTime" required>
+            </div>
+            <div class="field">
+              <label>Giờ kết thúc</label>
+              <input class="input" type="time" id="endTime" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Trình độ & lối chơi</h2>
+          <div class="field">
+            <label>Trình độ yêu cầu</label>
+            <div class="pill-group" id="skillGroup">
+              <label class="pill-option"><input type="radio" name="skill" value="All" checked> Tất cả</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Beginner"> Beginner</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Intermediate"> Intermediate</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Advanced"> Advanced</label>
+            </div>
+          </div>
+          <div class="field" style="margin-top:16px;">
+            <label>Lối chơi</label>
+            <div class="pill-group" id="styleGroup">
+              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Singles"> Singles</label>
+              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Doubles" checked> Doubles</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Số người & chi phí</h2>
+          <div class="field-row">
+            <div class="field">
+              <label>Số người tối đa (kể cả bạn)</label>
+              <div class="stepper">
+                <button type="button" id="playersMinus">−</button>
+                <span class="val" id="playersVal">8</span>
+                <button type="button" id="playersPlus">+</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Giá mỗi người (VNĐ, để trống nếu miễn phí)</label>
+              <input class="input" type="number" id="price" min="0" step="1000" placeholder="VD: 50000">
+              <div class="price-hint">Bỏ trống nếu tự thoả thuận sau.</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn" style="margin-top:28px;">
+          <span class="btn-label">Đăng trận</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
+import { getPlayerProfile } from "../js/profile-service.js";
+import { createMatch } from "./match-service.js";
+
+function initials(name) {
+  return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function toggleProfileModal(event) {
+  event.stopPropagation();
+  const modal = document.getElementById("profileModal");
+  modal.classList.toggle("show");
+}
+
+// Close modal when clicking outside
+document.addEventListener("click", (e) => {
+  const modal = document.getElementById("profileModal");
+  const userMenu = document.querySelector(".user-menu");
+  if (modal && !userMenu.contains(e.target)) {
+    modal.classList.remove("show");
+  }
+});
+
+function loadProfile() {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    try {
+      const profile = await Promise.race([
+        getPlayerProfile(user.uid),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("PROFILE_READ_TIMEOUT")), 5000);
+        }),
+      ]);
+      if (profile) {
+        const name = profile.displayName || user.displayName || user.email;
+        const styles = Array.isArray(profile.playingStyle) ? profile.playingStyle.join(" · ") : "";
+        const metaParts = [profile.skillLevel, styles, profile.favoriteCourt].filter(Boolean);
+        const metaText = metaParts.join(" · ") || "Hoàn tất hồ sơ để hiện trình độ";
+
+        document.getElementById("modalName").textContent = name;
+        document.getElementById("modalMeta").textContent = metaText;
+        document.getElementById("modalMatches").textContent = profile.matchesPlayed ?? 0;
+        document.getElementById("modalPlayers").textContent = profile.playersMet ?? 0;
+        document.getElementById("modalRating").textContent = profile.rating ?? 0;
+
+        const avatarInitials = initials(name);
+        const avatarEls = [document.getElementById("userAvatar"), document.getElementById("modalAvatar")];
+        avatarEls.forEach((el) => {
+          if (profile.photoURL) {
+            el.innerHTML = `<img src="${profile.photoURL}" alt="${name}">`;
+          } else {
+            el.textContent = avatarInitials;
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Không đọc được hồ sơ:", err);
+    }
+  });
+}
+
+loadProfile();
+
+let currentUser = null;
+let currentProfile = null;
+
+function getProfileWithTimeout(uid, timeoutMs = 5000) {
+  return Promise.race([
+    getPlayerProfile(uid),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("PROFILE_READ_TIMEOUT")), timeoutMs);
+    }),
+  ]);
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.replace("auth.html");
+    return;
+  }
+  currentUser = user;
+  try {
+    currentProfile = await getProfileWithTimeout(user.uid);
+    if (!currentProfile) {
+      // Chưa có hồ sơ người chơi -> bắt hoàn tất onboarding trước khi tạo trận
+      window.location.replace("onboarding.html");
+      return;
+    }
+  } catch (err) {
+    console.error("Không đọc được hồ sơ Firestore:", err);
+  }
+
+  document.getElementById("pageLoader").style.display = "none";
+  document.getElementById("appContent").style.display = "block";
+
+  // Mặc định: ngày hôm nay
+  document.getElementById("date").min = new Date().toISOString().slice(0, 10);
+});
+
+// Pill selection UI (giống onboarding.html)
+document.querySelectorAll(".pill-option input").forEach((input) => {
+  input.addEventListener("change", () => {
+    if (input.type === "radio") {
+      document.querySelectorAll(`input[name="${input.name}"]`).forEach((i) => {
+        i.closest(".pill-option").classList.toggle("selected", i.checked);
+      });
+    } else {
+      input.closest(".pill-option").classList.toggle("selected", input.checked);
+    }
+  });
+});
+document.querySelector('input[name="style"][checked]')?.closest(".pill-option")?.classList.add("selected");
+document.querySelectorAll('input[name="style"]:checked').forEach((i) => i.closest(".pill-option").classList.add("selected"));
+document.querySelector('input[name="skill"]:checked')?.closest(".pill-option")?.classList.add("selected");
+
+// Stepper số người (2 - 20)
+let maxPlayers = 8;
+const playersVal = document.getElementById("playersVal");
+document.getElementById("playersMinus").addEventListener("click", () => {
+  maxPlayers = Math.max(2, maxPlayers - 1);
+  playersVal.textContent = maxPlayers;
+});
+document.getElementById("playersPlus").addEventListener("click", () => {
+  maxPlayers = Math.min(20, maxPlayers + 1);
+  playersVal.textContent = maxPlayers;
+});
+
+const errorBox = document.getElementById("errorBox");
+function setError(msg) { errorBox.textContent = msg; errorBox.classList.add("show"); }
+
+document.getElementById("createForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errorBox.classList.remove("show");
+
+  const title = document.getElementById("title").value.trim();
+  const area = document.getElementById("area").value;
+  const courtName = document.getElementById("courtName").value.trim();
+  const date = document.getElementById("date").value;
+  const startTime = document.getElementById("startTime").value;
+  const endTime = document.getElementById("endTime").value;
+  const skillLevel = document.querySelector('input[name="skill"]:checked')?.value || "All";
+  const playingStyle = [...document.querySelectorAll('input[name="style"]:checked')].map((i) => i.value);
+  const price = document.getElementById("price").value;
+
+  if (!title || !area || !courtName || !date || !startTime || !endTime) {
+    setError("Vui lòng điền đầy đủ thông tin trận, sân, ngày và giờ chơi.");
+    return;
+  }
+  if (playingStyle.length === 0) {
+    setError("Chọn ít nhất một lối chơi (Singles hoặc Doubles).");
+    return;
+  }
+  if (endTime <= startTime) {
+    setError("Giờ kết thúc phải sau giờ bắt đầu.");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Đang đăng trận...`;
+
+  try {
+    const matchId = await createMatch(
+      {
+        uid: currentUser.uid,
+        displayName: currentProfile?.displayName || currentUser.displayName || currentUser.email,
+        photoURL: currentProfile?.photoURL || currentUser.photoURL || "",
+      },
+      {
+        title, area, courtName, date, startTime, endTime,
+        skillLevel, playingStyle, maxPlayers,
+        pricePerPerson: price ? Number(price) : 0,
+      }
+    );
+    window.location.href = "findmatch.html?created=" + matchId;
+  } catch (err) {
+    console.error("createMatch error:", err);
+    setError("Không đăng được trận, vui lòng thử lại. (" + (err?.code || err?.message || "lỗi không rõ") + ")");
+    btn.disabled = false;
+    btn.innerHTML = `<span class="btn-label">Đăng trận</span>`;
+  }
+});
+
+window.toggleProfileModal = toggleProfileModal;
+window.handleLogout = async () => {
+  if (confirm("Đăng xuất khỏi Rally?")) {
+    await signOut(auth);
+    window.location.href = "auth.html";
+  }
+};
+</script>
+</body>
+</html>

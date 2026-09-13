@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thursday Night Game</title>
+    <style>
+      :root {
+        --page-bg: #0a0a0a;
+        --panel-bg: #f2b60d;
+        --tab-active: #2558d2;
+        --team-red: #ea5a2a;
+        --team-blue: #2d67f1;
+        --placeholder: #e1e1e1;
+        --placeholder-line: rgba(0, 0, 0, 0.28);
+        --content-bg: #f4f2eb;
+        --button-blue: #1f4dd8;
+        --shadow: rgba(22, 30, 50, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--page-bg);
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+
+      .frame {
+        width: 540px;
+        min-height: 760px;
+        background: var(--panel-bg);
+        border-radius: 28px;
+        overflow: hidden;
+        padding: 18px 24px 14px;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+      }
+
+      .title {
+        text-align: center;
+        font-weight: 700;
+        font-size: 19px;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+        margin: 12px 0 18px;
+      }
+
+      .tabs {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 42px;
+        border-bottom: 3px solid rgba(0,0,0,0.05);
+        padding: 0 6px;
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 600;
+        color: rgba(12, 17, 26, 0.74);
+        padding: 8px 0 10px;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        color: #0b1020;
+      }
+
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        left: 18%;
+        right: 18%;
+        bottom: -3px;
+        height: 4px;
+        background: var(--tab-active);
+        border-radius: 999px;
+      }
+
+      .content {
+        background: var(--content-bg);
+        margin-top: 14px;
+        border-radius: 0 0 18px 18px;
+        padding: 18px 20px 12px;
+      }
+
+      .team {
+        margin-bottom: 24px;
+      }
+
+      .team-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 17px;
+        color: #1b1f2a;
+        margin: 0 0 16px;
+      }
+
+      .team-mark {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+
+      .team-red .team-mark { background: var(--team-red); }
+      .team-blue .team-mark { background: var(--team-blue); }
+
+      .team-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .avatar {
+        width: 92px;
+        height: 92px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: var(--placeholder);
+        border: 3px dashed var(--placeholder-line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .avatar:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px var(--shadow);
+      }
+
+      .avatar .plus {
+        font-size: 34px;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.35);
+        font-weight: 300;
+      }
+
+      .avatar .name {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(15, 23, 42, 0.8);
+        padding: 8px;
+        word-break: break-word;
+      }
+
+      .avatar.has-name .plus { display: none; }
+      .avatar:not(.has-name) .name { display: none; }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+      }
+
+      .create-btn {
+        border: none;
+        background: var(--button-blue);
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 10px 20px rgba(31, 77, 216, 0.18);
+      }
+
+      .create-btn:hover { filter: brightness(1.04); }
+
+      .match-tab {
+        margin-top: 12px;
+      }
+
+      .mini-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .mini-tab {
+        border: 1px solid rgba(0,0,0,0.08);
+        background: rgba(255,255,255,0.35);
+        color: #2a2d38;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .mini-tab.active {
+        background: #fff;
+        border-color: rgba(31,77,216,0.12);
+        color: var(--button-blue);
+      }
+
+      .board {
+        display: none;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 16px;
+        padding: 12px 14px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+      }
+
+      .board.active { display: block; }
+
+      .board-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .board-label {
+        font-size: 12px;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+      }
+
+      .score {
+        font-weight: 800;
+        font-size: 22px;
+        color: #0f172a;
+      }
+
+      .board-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        font-size: 12px;
+      }
+
+      .board-cell {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 6px;
+        text-align: center;
+        color: #334155;
+      }
+
+      .board-cell strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #0f172a;
+      }
+
+      .score-inputs {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+      }
+
+      .score-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .score-box input {
+        width: 52px;
+        height: 32px;
+        border: 1px solid rgba(15, 23, 42, 0.15);
+        border-radius: 10px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 700;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <h1 class="title">Thursday Night Game</h1>
+
+      <div class="tabs">
+        <div class="tab">Details</div>
+        <div class="tab active">Participants</div>
+        <div class="tab">Results</div>
+        <div class="tab">Chat</div>
+      </div>
+
+      <div class="content">
+        <div class="team team-red">
+          <div class="team-label">
+            <span class="team-mark"></span>
+            <span>Red team</span>
+          </div>
+          <div class="team-row">
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+          </div>
+        </div>
+
+        <div class="team team-blue">
+          <div class="team-label">
+            <span class="team-mark"></span>
+            <span>Blue team</span>
+          </div>
+          <div class="team-row">
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+            <div class="avatar" tabindex="0"><span class="plus">+</span><span class="name"></span></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="create-btn" id="createMatchBtn">Create match</button>
+        </div>
+      </div>
+
+      <div class="match-tab">
+        <div class="mini-tabs">
+          <div class="mini-tab active">Match</div>
+          <div class="mini-tab">Summary</div>
+        </div>
+
+        <div class="board active" id="boardPanel">
+          <div class="board-head">
+            <div class="board-label">Game board</div>
+            <div class="score" id="scoreDisplay">0 - 0</div>
+          </div>
+          <div class="board-grid" id="boardGrid">
+            <div class="board-cell"><strong>R1</strong>2</div>
+            <div class="board-cell"><strong>R2</strong>4</div>
+            <div class="board-cell"><strong>R3</strong>6</div>
+            <div class="board-cell"><strong>B1</strong>1</div>
+            <div class="board-cell"><strong>B2</strong>3</div>
+            <div class="board-cell"><strong>B3</strong>4</div>
+          </div>
+
+          <div class="score-inputs">
+            <label class="score-box">
+              <span>Red</span>
+              <input id="redScore" type="number" min="0" value="0" />
+            </label>
+            <label class="score-box">
+              <span>Blue</span>
+              <input id="blueScore" type="number" min="0" value="0" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const avatars = document.querySelectorAll('.avatar');
+      avatars.forEach((avatar) => {
+        avatar.addEventListener('click', () => {
+          const name = window.prompt('Nhập tên người chơi:', '');
+          if (!name || !name.trim()) return;
+
+          const value = name.trim();
+          const label = avatar.querySelector('.name');
+          label.textContent = value;
+          avatar.classList.add('has-name');
+        });
+
+        avatar.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            avatar.click();
+          }
+        });
+      });
+
+      const createBtn = document.getElementById('createMatchBtn');
+      const redScoreInput = document.getElementById('redScore');
+      const blueScoreInput = document.getElementById('blueScore');
+      const scoreDisplay = document.getElementById('scoreDisplay');
+      const boardGrid = document.getElementById('boardGrid');
+
+      function updateScoreDisplay() {
+        const red = Number(redScoreInput.value || 0);
+        const blue = Number(blueScoreInput.value || 0);
+        scoreDisplay.textContent = `${red} - ${blue}`;
+      }
+
+      function appendMatchRound() {
+        const red = Number(redScoreInput.value || 0);
+        const blue = Number(blueScoreInput.value || 0);
+        const totalRounds = boardGrid.children.length + 1;
+
+        const cell = document.createElement('div');
+        cell.className = 'board-cell';
+        cell.innerHTML = `<strong>R${totalRounds}</strong>${red} - ${blue}`;
+        boardGrid.appendChild(cell);
+
+        updateScoreDisplay();
+      }
+
+      redScoreInput.addEventListener('input', updateScoreDisplay);
+      blueScoreInput.addEventListener('input', updateScoreDisplay);
+
+      createBtn.addEventListener('click', () => {
+        const hasAnyName = [...avatars].some((avatar) => avatar.classList.contains('has-name'));
+        if (!hasAnyName) {
+          window.alert('Vui lòng thêm ít nhất một tên người chơi trước khi tạo trận.');
+          return;
+        }
+
+        appendMatchRound();
+        createBtn.textContent = 'Match created';
+        createBtn.disabled = true;
+        createBtn.style.opacity = '0.8';
+      });
+    </script>
+  </body>
+</html>
