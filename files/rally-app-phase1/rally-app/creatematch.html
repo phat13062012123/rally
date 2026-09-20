@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tạo trận — Rally</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/notification.css">
 <style>
   .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
   .user-avatar {
@@ -95,8 +96,10 @@
         <a href="findmatch.html">🔎 Tìm trận</a>
         <a href="findcourt.html">📍 Tìm sân</a>
         <a href="creatematch.html" class="active">➕ Tạo trận</a>
-        <a href="#">� Trò chuyện</a>
-        <a href="#">🔔 Thông báo</a>
+        <a href="#">💬 Trò chuyện</a>
+        <div class="notif-wrap">
+          <a href="#" id="notifBtn">🔔 Thông báo</a>
+        </div>
       </div>
       <div class="user-menu">
         <div class="user-avatar" id="userAvatar" title="Hồ sơ cá nhân" onclick="toggleProfileModal(event)">?</div>
@@ -238,9 +241,10 @@
   </div>
 </div>
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
-import { getPlayerProfile } from "../js/profile-service.js";
+import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
+import { getPlayerProfile } from "./js/profile-service.js";
 import { createMatch } from "./match-service.js";
+import { initNotificationUI } from "./js/notification-ui.js";
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -332,6 +336,9 @@ onAuthStateChanged(auth, async (user) => {
 
   document.getElementById("pageLoader").style.display = "none";
   document.getElementById("appContent").style.display = "block";
+
+  // Thông báo realtime cho host (badge + dropdown)
+  initNotificationUI(user.uid);
 
   // Mặc định: ngày hôm nay
   document.getElementById("date").min = new Date().toISOString().slice(0, 10);

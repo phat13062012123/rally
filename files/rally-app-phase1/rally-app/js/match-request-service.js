@@ -1,0 +1,237 @@
+// js/match-request-service.js
+// Quản lý collection "matchRequests" — yêu cầu tham gia trận.
+// Doc ID = `${matchId}__${playerId}` → chống duplicate tự nhiên.
+
+import {
+  db,
+  collection,
+  doc,
+  query,
+  where,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp,
+  arrayUnion,
+} from "./firebase-config.js";
+import { createNotification } from "./notification-service.js";
+
+const REQUESTS = "matchRequests";
+const MATCHES = "matches";
+
+/**
+ * ⚠️ Nếu project lưu UID host dưới field khác, sửa duy nhất hàm này.
+ */
+function getHostId(match) {
+  return (
+    match?.hostId ||
+    // Trường của các trận được tạo bằng phiên bản Rally trước đây.
+    match?.hostUid ||
+    match?.ownerId ||
+    match?.createdBy ||
+    match?.userId ||
+    null
+  );
+}
+export function getMatchHostId(match) {
+  return getHostId(match);
+}
+
+function buildRequestId(matchId, playerId) {
+  return `${matchId}__${playerId}`;
+}
+
+/**
+ * Tạo join request. Ném Error với message là mã lỗi:
+ *   AUTH_REQUIRED | MATCH_ID_MISSING | HOST_ID_MISSING | HOST_CANNOT_JOIN
+ *   MATCH_NOT_FOUND | MATCH_FULL
+ *   REQUEST_PENDING | REQUEST_ACCEPTED | REQUEST_REJECTED | REQUEST_EXISTS
+ *
+ * @returns {Promise<string>} requestId
+ */
+export async function createJoinRequest({ match, player }) {
+  if (!player?.uid) throw new Error("AUTH_REQUIRED");
+
+  const matchId = match?.id || match?.matchId;
+  if (!matchId) throw new Error("MATCH_ID_MISSING");
+
+  const hostId = getHostId(match);
+  if (!hostId) throw new Error("HOST_ID_MISSING");
+  if (hostId === player.uid) throw new Error("HOST_CANNOT_JOIN");
+
+  const reqId = buildRequestId(matchId, player.uid);
+  const reqRef = doc(db, REQUESTS, reqId);
+  const matchRef = doc(db, MATCHES, matchId);
+
+  await runTransaction(db, async (tx) => {
+    const matchSnap = await tx.get(matchRef);
+    if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
+
+    const m = matchSnap.data();
+    const current = m.currentPlayers ?? 0;
+    const max = m.maxPlayers ?? 0;
+    if (max > 0 && current >= max) throw new Error("MATCH_FULL");
+
+    const reqSnap = await tx.get(reqRef);
+    if (reqSnap.exists()) {
+      const st = reqSnap.data().status;
+      if (st === "pending") throw new Error("REQUEST_PENDING");
+      if (st === "accepted") throw new Error("REQUEST_ACCEPTED");
+      if (st === "rejected") throw new Error("REQUEST_REJECTED");
+      throw new Error("REQUEST_EXISTS");
+    }
+
+    tx.set(reqRef, {
+      matchId,
+      hostId,
+      playerId: player.uid,
+      playerName: player.displayName || player.email || "Người chơi",
+      playerPhotoURL: player.photoURL || "",
+      matchTitle: match.title || "",
+      status: "pending",
+      createdAt: serverTimestamp(),
+    });
+  });
+
+  // Notification cho Host — không chặn flow chính nếu fail
+  try {
+    await createNotification({
+      recipientId: hostId,
+      senderId: player.uid,
+      type: "match_join_request",
+      matchId,
+      requestId: reqId,
+      title: "Yêu cầu tham gia trận",
+      message: `${player.displayName || "Người chơi"} muốn tham gia trận "${
+        match.title || ""
+      }".`,
+    });
+  } catch (err) {
+    console.error("Không gửi được notification cho host:", err);
+  }
+
+  return reqId;
+}
+
+/**
+ * Lắng nghe tất cả request mà 1 player đã gửi.
+ * @returns {Function} unsubscribe
+ */
+export function listenToPlayerJoinRequests(playerId, onData, onError) {
+  if (!playerId) return () => {};
+  const q = query(collection(db, REQUESTS), where("playerId", "==", playerId));
+  return onSnapshot(
+    q,
+    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    onError
+  );
+}
+
+/**
+ * Lắng nghe tất cả request gửi đến 1 host.
+ * @returns {Function} unsubscribe
+ */
+export function listenToHostJoinRequests(hostId, onData, onError) {
+  if (!hostId) return () => {};
+  const q = query(collection(db, REQUESTS), where("hostId", "==", hostId));
+  return onSnapshot(
+    q,
+    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    onError
+  );
+}
+
+/**
+ * Host chấp nhận request. Transaction đảm bảo:
+ *   - request.status: pending → accepted
+ *   - match.currentPlayers += 1 (không double)
+ *   - không vượt maxPlayers
+ */
+export async function acceptJoinRequest(requestId, hostId) {
+  if (!requestId || !hostId) throw new Error("INVALID_ARGS");
+
+  const reqRef = doc(db, REQUESTS, requestId);
+  let reqData = null;
+
+  await runTransaction(db, async (tx) => {
+    const reqSnap = await tx.get(reqRef);
+    if (!reqSnap.exists()) throw new Error("REQUEST_NOT_FOUND");
+    reqData = reqSnap.data();
+
+    if (reqData.hostId !== hostId) throw new Error("NOT_HOST");
+    if (reqData.status !== "pending") throw new Error("REQUEST_NOT_PENDING");
+
+    const matchRef = doc(db, MATCHES, reqData.matchId);
+    const matchSnap = await tx.get(matchRef);
+    if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
+
+    const match = matchSnap.data();
+    const current = match.currentPlayers ?? 0;
+    const max = match.maxPlayers ?? 0;
+    if (max > 0 && current >= max) throw new Error("MATCH_FULL");
+
+    tx.update(reqRef, { status: "accepted", respondedAt: serverTimestamp() });
+    tx.update(matchRef, {
+      currentPlayers: current + 1,
+      // Giữ danh sách thành viên đồng bộ với số lượng người chơi. arrayUnion
+      // cũng giúp an toàn nếu dữ liệu trận cũ chưa có playerUids.
+      playerUids: arrayUnion(reqData.playerId),
+    });
+  });
+
+  try {
+    await createNotification({
+      recipientId: reqData.playerId,
+      senderId: hostId,
+      type: "match_request_accepted",
+      matchId: reqData.matchId,
+      requestId,
+      title: "Yêu cầu tham gia được chấp nhận",
+      message: `Host đã chấp nhận bạn vào trận "${
+        reqData.matchTitle || ""
+      }".`,
+    });
+  } catch (err) {
+    console.error("Không gửi được notification accept:", err);
+  }
+
+  return true;
+}
+
+/**
+ * Host từ chối request. Không đụng vào currentPlayers.
+ */
+export async function rejectJoinRequest(requestId, hostId) {
+  if (!requestId || !hostId) throw new Error("INVALID_ARGS");
+
+  const reqRef = doc(db, REQUESTS, requestId);
+  let reqData = null;
+
+  await runTransaction(db, async (tx) => {
+    const reqSnap = await tx.get(reqRef);
+    if (!reqSnap.exists()) throw new Error("REQUEST_NOT_FOUND");
+    reqData = reqSnap.data();
+
+    if (reqData.hostId !== hostId) throw new Error("NOT_HOST");
+    if (reqData.status !== "pending") throw new Error("REQUEST_NOT_PENDING");
+
+    tx.update(reqRef, { status: "rejected", respondedAt: serverTimestamp() });
+  });
+
+  try {
+    await createNotification({
+      recipientId: reqData.playerId,
+      senderId: hostId,
+      type: "match_request_rejected",
+      matchId: reqData.matchId,
+      requestId,
+      title: "Yêu cầu tham gia bị từ chối",
+      message: `Host đã từ chối yêu cầu tham gia trận "${
+        reqData.matchTitle || ""
+      }".`,
+    });
+  } catch (err) {
+    console.error("Không gửi được notification reject:", err);
+  }
+
+  return true;
+}

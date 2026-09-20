@@ -187,9 +187,9 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
-import { getPlayerProfile } from "../js/profile-service.js";
-import { listenToCourts } from "../js/court-service.js";
+import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
+import { getPlayerProfile } from "./js/profile-service.js";
+import { listenToCourts } from "./js/court-service.js";
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();

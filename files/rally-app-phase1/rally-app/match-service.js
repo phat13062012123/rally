@@ -1,7 +1,7 @@
 // js/match-service.js
 // Đọc và ghi dữ liệu trận đấu trong collection Firestore "matches".
 
-import { db } from "../js/firebase-config.js";
+import { db } from "./js/firebase-config.js";
 import {
   addDoc,
   collection,
@@ -27,6 +27,7 @@ export async function createMatch(host, match) {
   const matchData = {
     ...match,
     hostUid: host.uid,
+    hostId: host.uid,
     hostName: host.displayName || "Người chơi Rally",
     hostPhotoURL: host.photoURL || "",
     currentPlayers: 1,

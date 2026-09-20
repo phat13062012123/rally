@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tìm trận — Rally</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/notification.css">
 <style>
   .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
   .user-avatar {
@@ -126,7 +127,9 @@
         <a href="findcourt.html">📍 Tìm sân</a>
         <a href="creatematch.html">➕ Tạo trận</a>
         <a href="#">💬 Trò chuyện</a>
-        <a href="#">🔔 Thông báo</a>
+        <div class="notif-wrap">
+          <a href="#" id="notifBtn">🔔 Thông báo</a>
+        </div>
       </div>
       <div class="user-menu">
         <div class="user-avatar" id="userAvatar" title="Hồ sơ cá nhân" onclick="toggleProfileModal(event)">?</div>
@@ -212,9 +215,14 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from "../js/firebase-config.js";
+import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 import { listenToMatches, formatMatchDate } from "./match-service.js";
-import { getPlayerProfile } from "../js/profile-service.js";
+import { getPlayerProfile } from "./js/profile-service.js";
+import { createJoinRequest, listenToPlayerJoinRequests, getMatchHostId } from "./js/match-request-service.js";
+import { initNotificationUI } from "./js/notification-ui.js";
+
+let currentUser = null;
+const requestStatusByMatchId = new Map();
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -301,6 +309,19 @@ function renderMatchCard(m) {
   const priceLabel = m.pricePerPerson
     ? `${Number(m.pricePerPerson).toLocaleString("vi-VN")}đ / người`
     : "Miễn phí / tự thoả thuận";
+  const requestStatus = requestStatusByMatchId.get(m.id);
+  const isHost = currentUser && getMatchHostId(m) === currentUser.uid;
+  const buttonState = isFull
+    ? { label: "Đã đủ người", disabled: true }
+    : isHost
+      ? { label: "Bạn là chủ trận", disabled: true }
+      : requestStatus === "pending"
+        ? { label: "Đang chờ duyệt", disabled: true }
+        : requestStatus === "accepted"
+          ? { label: "Đã được chấp nhận", disabled: true }
+          : requestStatus === "rejected"
+            ? { label: "Yêu cầu bị từ chối", disabled: true }
+            : { label: "Tham gia trận", disabled: false };
 
   return `
     <div class="match-card">
@@ -313,12 +334,16 @@ function renderMatchCard(m) {
       <div class="slot-bar">${slots}</div>
       <div class="slot-label"><span><b>${filled}/${total}</b> người chơi</span>${isFull ? '<span class="full-tag">Đã đủ người</span>' : ""}</div>
       <div class="price">${priceLabel}</div>
-      <button type="button" class="btn ${isFull ? "btn-outline" : "btn-primary"} btn-block" ${isFull ? "disabled" : ""}>
-        ${isFull ? "Đã đủ người" : "Tham gia trận"}
+      <button type="button" class="btn ${buttonState.disabled ? "btn-outline" : "btn-primary"} btn-block join-btn"
+              data-match-id="${escapeHtml(m.id)}" ${buttonState.disabled ? "disabled" : ""}>
+        ${buttonState.label}
       </button>
     </div>
   `;
 }
+
+// Cache theo id để biết hostId khi bấm tham gia
+const matchCache = new Map();
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({
@@ -327,6 +352,9 @@ function escapeHtml(str) {
 }
 
 function renderMatches(matches) {
+  matchCache.clear();
+  matches.forEach((m) => matchCache.set(m.id, m));
+
   const onlyOpen = filterOnlyOpen.checked;
   const visible = onlyOpen
     ? matches.filter((m) => (m.currentPlayers ?? 0) < (m.maxPlayers ?? 0))
@@ -367,6 +395,47 @@ function subscribe() {
   );
 }
 
+// Nút "Tham gia trận" — gửi yêu cầu tới host, host sẽ nhận thông báo
+listArea.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".join-btn");
+  if (!btn || btn.disabled) return;
+
+  const matchId = btn.dataset.matchId;
+  const match = matchCache.get(matchId);
+  if (!match) return;
+
+  if (!currentUser) {
+    window.location.replace("auth.html");
+    return;
+  }
+
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Đang gửi...";
+
+  try {
+    await createJoinRequest({ match, player: currentUser });
+    btn.textContent = "Đã gửi yêu cầu";
+    btn.classList.remove("btn-primary");
+    btn.classList.add("btn-outline");
+    alert("Đã gửi yêu cầu tham gia. Chủ trận sẽ nhận được thông báo để xác nhận.");
+  } catch (err) {
+    const code = err?.message || "";
+    const messages = {
+      HOST_CANNOT_JOIN: "Bạn là chủ trận này, không thể tự tham gia.",
+      MATCH_FULL: "Trận đã đủ người.",
+      REQUEST_PENDING: "Bạn đã gửi yêu cầu và đang chờ chủ trận xác nhận.",
+      REQUEST_ACCEPTED: "Bạn đã là thành viên của trận này.",
+      REQUEST_REJECTED: "Yêu cầu trước đó đã bị từ chối.",
+      REQUEST_EXISTS: "Bạn đã có yêu cầu cho trận này.",
+      AUTH_REQUIRED: "Vui lòng đăng nhập lại.",
+    };
+    alert(messages[code] || ("Không gửi được yêu cầu: " + (code || "lỗi không rõ")));
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
 [filterArea, filterSkill, filterDate].forEach((el) => el.addEventListener("change", subscribe));
 filterOnlyOpen.addEventListener("change", subscribe);
 document.getElementById("resetFilters").addEventListener("click", () => {
@@ -389,8 +458,16 @@ onAuthStateChanged(auth, (user) => {
     window.location.replace("auth.html");
     return;
   }
+  currentUser = user;
   document.getElementById("pageLoader").style.display = "none";
   document.getElementById("appContent").style.display = "block";
+  initNotificationUI(user.uid);
+  listenToPlayerJoinRequests(user.uid, (requests) => {
+    requestStatusByMatchId.clear();
+    requests.forEach((request) => requestStatusByMatchId.set(request.matchId, request.status));
+    // Cập nhật nhãn nút cả khi người chơi tải lại trang hoặc host vừa phản hồi.
+    if (matchCache.size) renderMatches([...matchCache.values()]);
+  });
   subscribe();
 });
 

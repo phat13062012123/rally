@@ -189,8 +189,8 @@ import {
   auth, googleProvider,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup,
   updateProfile, sendPasswordResetEmail, onAuthStateChanged,
-} from "../js/firebase-config.js";
-import { routeAfterAuth } from "../js/profile-service.js";
+} from "./js/firebase-config.js";
+import { routeAfterAuth } from "./js/profile-service.js";
 
 // Nếu đã đăng nhập rồi mà vào lại trang auth -> chuyển thẳng đi, không bắt đăng nhập lại
 onAuthStateChanged(auth, (user) => {
