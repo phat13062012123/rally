@@ -1,5 +1,5 @@
 // js/profile-service.js
-import { db } from "./firebase-config.js";
+import { db, serverTimestamp } from "./firebase-config.js";
 import {
   doc,
   getDoc,
@@ -71,6 +71,11 @@ export async function routeAfterAuth(user) {
   
   try {
     const profile = await getPlayerProfile(user.uid);
+    // Legacy profiles may lack optional fields but are still valid profiles.
+    if (profile) {
+      window.location.replace("dashboard.html");
+      return;
+    }
     if (!profile) {
       window.location.replace("onboarding.html");
     } else {
@@ -85,4 +90,18 @@ export async function routeAfterAuth(user) {
     console.error("Error routing after auth:", error);
     window.location.replace("dashboard.html");
   }
+}
+
+// API used by onboarding.html to create the initial player profile.
+export async function createPlayerProfile(uid, profileData) {
+  return savePlayerProfile(uid, {
+    uid,
+    ...profileData,
+    rating: 0,
+    matchesPlayed: 0,
+    playersMet: 0,
+    followers: 0,
+    following: 0,
+    createdAt: serverTimestamp(),
+  });
 }
