@@ -40,6 +40,10 @@ function buildRequestId(matchId, playerId) {
   return `${matchId}__${playerId}`;
 }
 
+function buildChatId(matchId, playerId) {
+  return `${matchId}__${playerId}`;
+}
+
 /**
  * Tạo join request. Ném Error với message là mã lỗi:
  *   AUTH_REQUIRED | MATCH_ID_MISSING | HOST_ID_MISSING | HOST_CANNOT_JOIN
@@ -61,36 +65,52 @@ export async function createJoinRequest({ match, player }) {
   const reqId = buildRequestId(matchId, player.uid);
   const reqRef = doc(db, REQUESTS, reqId);
   const matchRef = doc(db, MATCHES, matchId);
+  const chatId = buildChatId(matchId, player.uid);
+  const chatRef = doc(db, "chats", chatId);
 
-  await runTransaction(db, async (tx) => {
-    const matchSnap = await tx.get(matchRef);
-    if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
+  try {
+    await runTransaction(db, async (tx) => {
+      const matchSnap = await tx.get(matchRef);
+      if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
 
-    const m = matchSnap.data();
-    const current = m.currentPlayers ?? 0;
-    const max = m.maxPlayers ?? 0;
-    if (max > 0 && current >= max) throw new Error("MATCH_FULL");
+      const m = matchSnap.data();
+      if (Array.isArray(m.playerUids) && m.playerUids.includes(player.uid)) {
+        throw new Error("REQUEST_ACCEPTED");
+      }
+      const current = m.currentPlayers ?? 0;
+      const max = m.maxPlayers ?? 0;
+      if (max > 0 && current >= max) throw new Error("MATCH_FULL");
 
-    const reqSnap = await tx.get(reqRef);
-    if (reqSnap.exists()) {
-      const st = reqSnap.data().status;
-      if (st === "pending") throw new Error("REQUEST_PENDING");
-      if (st === "accepted") throw new Error("REQUEST_ACCEPTED");
-      if (st === "rejected") throw new Error("REQUEST_REJECTED");
-      throw new Error("REQUEST_EXISTS");
-    }
-
-    tx.set(reqRef, {
-      matchId,
-      hostId,
-      playerId: player.uid,
-      playerName: player.displayName || player.email || "Người chơi",
-      playerPhotoURL: player.photoURL || "",
-      matchTitle: match.title || "",
-      status: "pending",
-      createdAt: serverTimestamp(),
+      // Không đọc request trước khi ghi vì document chưa tồn tại có thể bị
+      // Firestore Rules từ chối. Rules chỉ cho player `create`, còn `update`
+      // chỉ dành cho host, nên set() không thể ghi đè request đã tồn tại.
+      tx.set(reqRef, {
+        matchId,
+        hostId,
+        playerId: player.uid,
+        playerName: player.displayName || player.email || "Người chơi",
+        playerPhotoURL: player.photoURL || "",
+        matchTitle: match.title || "",
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+      // Host và người gửi có thể trao đổi ngay trong lúc chờ duyệt.
+      tx.set(chatRef, {
+        matchId,
+        matchTitle: match.title || m.title || "Trận cầu lông",
+        hostId,
+        playerId: player.uid,
+        participantIds: [hostId, player.uid],
+        hostName: m.hostName || match.hostName || "Chủ trận",
+        playerName: player.displayName || player.email || "Người chơi",
+        lastMessage: "",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
     });
-  });
+  } catch (err) {
+    throw err;
+  }
 
   // Notification cho Host — không chặn flow chính nếu fail
   try {
@@ -100,6 +120,7 @@ export async function createJoinRequest({ match, player }) {
       type: "match_join_request",
       matchId,
       requestId: reqId,
+      chatId,
       title: "Yêu cầu tham gia trận",
       message: `${player.displayName || "Người chơi"} muốn tham gia trận "${
         match.title || ""
@@ -169,6 +190,9 @@ export async function acceptJoinRequest(requestId, hostId) {
     const max = match.maxPlayers ?? 0;
     if (max > 0 && current >= max) throw new Error("MATCH_FULL");
 
+    const responseNotificationRef = doc(collection(db, "notifications"));
+    const chatId = buildChatId(reqData.matchId, reqData.playerId);
+
     tx.update(reqRef, { status: "accepted", respondedAt: serverTimestamp() });
     tx.update(matchRef, {
       currentPlayers: current + 1,
@@ -176,23 +200,22 @@ export async function acceptJoinRequest(requestId, hostId) {
       // cũng giúp an toàn nếu dữ liệu trận cũ chưa có playerUids.
       playerUids: arrayUnion(reqData.playerId),
     });
-  });
-
-  try {
-    await createNotification({
+    // Đổi trạng thái, thêm thành viên và báo cho người chơi phải cùng thành
+    // công. Không để trận đã được duyệt nhưng người chơi không nhận kết quả.
+    tx.set(responseNotificationRef, {
       recipientId: reqData.playerId,
       senderId: hostId,
       type: "match_request_accepted",
       matchId: reqData.matchId,
       requestId,
       title: "Yêu cầu tham gia được chấp nhận",
-      message: `Host đã chấp nhận bạn vào trận "${
-        reqData.matchTitle || ""
-      }".`,
+      message: `Host đã chấp nhận bạn vào trận "${reqData.matchTitle || ""}".`,
+      read: false,
+      handled: false,
+      createdAt: serverTimestamp(),
+      chatId,
     });
-  } catch (err) {
-    console.error("Không gửi được notification accept:", err);
-  }
+  });
 
   return true;
 }
@@ -214,24 +237,21 @@ export async function rejectJoinRequest(requestId, hostId) {
     if (reqData.hostId !== hostId) throw new Error("NOT_HOST");
     if (reqData.status !== "pending") throw new Error("REQUEST_NOT_PENDING");
 
+    const responseNotificationRef = doc(collection(db, "notifications"));
     tx.update(reqRef, { status: "rejected", respondedAt: serverTimestamp() });
-  });
-
-  try {
-    await createNotification({
+    tx.set(responseNotificationRef, {
       recipientId: reqData.playerId,
       senderId: hostId,
       type: "match_request_rejected",
       matchId: reqData.matchId,
       requestId,
       title: "Yêu cầu tham gia bị từ chối",
-      message: `Host đã từ chối yêu cầu tham gia trận "${
-        reqData.matchTitle || ""
-      }".`,
+      message: `Host đã từ chối yêu cầu tham gia trận "${reqData.matchTitle || ""}".`,
+      read: false,
+      handled: false,
+      createdAt: serverTimestamp(),
     });
-  } catch (err) {
-    console.error("Không gửi được notification reject:", err);
-  }
+  });
 
   return true;
 }

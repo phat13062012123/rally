@@ -113,6 +113,8 @@ export function initNotificationUI(userId) {
         const isPendingReq =
           n.type === "match_join_request" && n.requestId && !n.handled;
 
+        const hasChat = n.type === "match_request_accepted" && n.chatId;
+
         const actions = isPendingReq
           ? `<div class="notif-actions">
                <button type="button" class="accept"
@@ -121,8 +123,11 @@ export function initNotificationUI(userId) {
                <button type="button" class="reject"
                        data-action="reject"
                        data-req="${escapeHtml(n.requestId)}">Từ chối</button>
+               ${n.chatId ? `<a class="accept" href="chat.html?chat=${encodeURIComponent(n.chatId)}">Nhắn tin</a>` : ""}
              </div>`
-          : "";
+          : hasChat
+            ? `<div class="notif-actions"><a class="accept" href="chat.html?chat=${encodeURIComponent(n.chatId)}">Nhắn với host</a></div>`
+            : "";
 
         return `
           <div class="notif-item ${n.read ? "" : "unread"}"
@@ -173,6 +178,11 @@ export function initNotificationUI(userId) {
         if (notifId) {
           await updateNotification(notifId, { read: true, handled: true });
         }
+        alert(
+          action === "accept"
+            ? "Đã chấp nhận người chơi. Thông báo kết quả đã được gửi."
+            : "Đã từ chối yêu cầu. Thông báo kết quả đã được gửi."
+        );
       } catch (err) {
         console.error("Xử lý yêu cầu thất bại:", err);
         alert("Không thể xử lý yêu cầu: " + (err?.message || err));

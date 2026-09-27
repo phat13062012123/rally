@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò chuyện — Rally</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .chat-page { padding: 36px 0 52px; }
+    .chat-page h1 { font-family: var(--font-display); font-size: 29px; margin-bottom: 7px; }
+    .chat-page > .wrap > p { color: var(--text-secondary); margin-bottom: 24px; }
+    .chat-shell { height: min(650px, calc(100vh - 185px)); min-height: 450px; display: grid; grid-template-columns: 310px 1fr; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+    .chat-sidebar { border-right: 1px solid var(--border); overflow-y: auto; }
+    .chat-sidebar-head { padding: 18px; border-bottom: 1px solid var(--border); font-weight: 700; }
+    .chat-row { width: 100%; border: 0; border-bottom: 1px solid var(--border); background: transparent; padding: 15px 17px; text-align: left; cursor: pointer; color: var(--ink); }
+    .chat-row:hover, .chat-row.active { background: var(--primary-light); }
+    .chat-row-title { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-row-meta, .chat-row-last { color: var(--text-secondary); font-size: 12px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-main { min-width: 0; display: flex; flex-direction: column; }
+    .chat-main-head { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .chat-main-head h2 { font-size: 16px; margin: 0; }
+    .chat-main-head p { color: var(--text-secondary); font-size: 12px; margin: 4px 0 0; }
+    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+    .message { max-width: min(78%, 480px); padding: 10px 12px; border-radius: 13px; background: var(--surface); border: 1px solid var(--border); align-self: flex-start; font-size: 13.5px; line-height: 1.45; }
+    .message.mine { align-self: flex-end; background: var(--primary); border-color: var(--primary); color: #fff; }
+    .message-name { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
+    .message.mine .message-name { color: rgba(255,255,255,.75); }
+    .message-time { font-size: 10px; margin-top: 5px; color: var(--text-muted); }
+    .message.mine .message-time { color: rgba(255,255,255,.72); }
+    .message-form { display: flex; gap: 9px; padding: 14px; border-top: 1px solid var(--border); }
+    .message-form .input { min-width: 0; flex: 1; }
+    .empty-chat { height: 100%; display: grid; place-content: center; text-align: center; color: var(--text-secondary); padding: 30px; }
+    .empty-chat .icon { font-size: 32px; margin-bottom: 10px; }
+    @media (max-width: 700px) { .chat-page { padding-top: 22px; } .chat-shell { height: calc(100vh - 150px); grid-template-columns: 1fr; } .chat-sidebar { display: none; } .chat-shell.show-list .chat-sidebar { display: block; border-right: 0; } .chat-shell.show-list .chat-main { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="page-loader" id="pageLoader"><div class="spinner spinner-dark" style="width:28px;height:28px;"></div></div>
+  <div id="appContent" style="display:none;">
+    <nav class="navbar"><div class="wrap">
+      <div class="logo"><a href="dashboard.html">Rally</a></div>
+      <div class="nav-links">
+        <a href="findmatch.html">🔎 Tìm trận</a>
+        <a href="creatematch.html">➕ Tạo trận</a>
+        <a href="chat.html" class="active">💬 Trò chuyện</a>
+      </div>
+    </div></nav>
+    <main class="chat-page">
+      <div class="wrap">
+        <h1>Trò chuyện</h1>
+        <p>Trao đổi với host hoặc người chơi đã gửi yêu cầu tham gia trận.</p>
+        <div class="chat-shell" id="chatShell">
+          <aside class="chat-sidebar"><div class="chat-sidebar-head">Cuộc trò chuyện</div><div style="padding:12px;border-bottom:1px solid var(--border);"><input class="input" id="chatSearch" type="search" placeholder="Tìm theo tên người chơi..."></div><div id="chatList"><div class="empty-chat">Đang tải...</div></div></aside>
+          <section class="chat-main" id="chatMain"><div class="empty-chat"><div class="icon">💬</div><div>Chọn một cuộc trò chuyện để bắt đầu.</div></div></section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module">
+    import { auth, onAuthStateChanged } from "./js/firebase-config.js";
+    import { listenToChats, listenToMessages, sendMessage } from "./js/chat-service.js";
+
+    let currentUser = null;
+    let chats = [];
+    let chatSearchTerm = "";
+    let activeChatId = new URLSearchParams(location.search).get("chat");
+    let stopMessages = () => {};
+
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    const timeText = (value) => value?.toDate ? value.toDate().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "Vừa xong";
+
+    function otherPerson(chat) {
+      return chat.hostId === currentUser.uid ? (chat.playerName || "Người chơi") : (chat.hostName || "Chủ trận");
+    }
+
+    function renderChatList() {
+      const list = document.getElementById("chatList");
+      const visibleChats = chats.filter((chat) => otherPerson(chat).toLocaleLowerCase("vi-VN").includes(chatSearchTerm));
+      if (!visibleChats.length) {
+        list.innerHTML = `<div class="empty-chat">${chats.length ? "Không tìm thấy người chơi phù hợp." : "Chưa có cuộc trò chuyện nào.<br>Cuộc trò chuyện được tạo khi có yêu cầu tham gia."}</div>`;
+        return;
+      }
+      list.innerHTML = visibleChats.map((chat) => `
+        <button class="chat-row ${chat.id === activeChatId ? "active" : ""}" data-chat-id="${escapeHtml(chat.id)}">
+          <div class="chat-row-title">${escapeHtml(otherPerson(chat))}</div>
+          <div class="chat-row-meta">${escapeHtml(chat.matchTitle || "Trận cầu lông")}</div>
+          <div class="chat-row-last">${escapeHtml(chat.lastMessage || "Chưa có tin nhắn")}</div>
+        </button>`).join("");
+    }
+
+    function renderConversation(chat, messages) {
+      const main = document.getElementById("chatMain");
+      const bubbles = messages.length ? messages.map((message) => `
+        <div class="message ${message.senderId === currentUser.uid ? "mine" : ""}">
+          <div class="message-name">${escapeHtml(message.senderName || "Người chơi")}</div>
+          <div>${escapeHtml(message.text)}</div>
+          <div class="message-time">${timeText(message.createdAt)}</div>
+        </div>`).join("") : '<div class="empty-chat"><div class="icon">👋</div><div>Hãy gửi lời chào để bắt đầu trò chuyện.</div></div>';
+      main.innerHTML = `
+        <div class="chat-main-head"><h2>${escapeHtml(otherPerson(chat))}</h2><p>${escapeHtml(chat.matchTitle || "Trận cầu lông")}</p></div>
+        <div class="messages" id="messageList">${bubbles}</div>
+        <form class="message-form" id="messageForm"><input class="input" id="messageInput" maxlength="800" autocomplete="off" placeholder="Nhập tin nhắn..." required><button class="btn btn-primary" type="submit">Gửi</button></form>`;
+      const messageList = document.getElementById("messageList");
+      messageList.scrollTop = messageList.scrollHeight;
+      document.getElementById("messageForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const input = document.getElementById("messageInput");
+        const submit = event.currentTarget.querySelector("button");
+        submit.disabled = true;
+        try {
+          await sendMessage({ chatId: chat.id, senderId: currentUser.uid, senderName: currentUser.displayName || currentUser.email, text: input.value });
+          input.value = "";
+        } catch (error) {
+          alert("Không gửi được tin nhắn: " + (error.message || error));
+        } finally { submit.disabled = false; }
+      });
+    }
+
+    function openChat(chatId) {
+      const chat = chats.find((item) => item.id === chatId);
+      if (!chat) return;
+      activeChatId = chatId;
+      history.replaceState(null, "", `chat.html?chat=${encodeURIComponent(chatId)}`);
+      renderChatList();
+      document.getElementById("chatShell").classList.remove("show-list");
+      stopMessages();
+      stopMessages = listenToMessages(chatId, (messages) => renderConversation(chat, messages), (error) => alert("Không tải được tin nhắn: " + error.message));
+    }
+
+    document.getElementById("chatList").addEventListener("click", (event) => {
+      const row = event.target.closest("[data-chat-id]");
+      if (row) openChat(row.dataset.chatId);
+    });
+
+    document.getElementById("chatSearch").addEventListener("input", (event) => {
+      chatSearchTerm = event.target.value.trim().toLocaleLowerCase("vi-VN");
+      renderChatList();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { location.replace("auth.html"); return; }
+      currentUser = user;
+      document.getElementById("pageLoader").style.display = "none";
+      document.getElementById("appContent").style.display = "block";
+      listenToChats(user.uid, (items) => {
+        chats = items;
+        renderChatList();
+        if (activeChatId && chats.some((chat) => chat.id === activeChatId)) openChat(activeChatId);
+      }, (error) => { document.getElementById("chatList").innerHTML = `<div class="empty-chat">Không tải được cuộc trò chuyện.<br>${escapeHtml(error.message)}</div>`; });
+    });
+  </script>
+</body>
+</html>

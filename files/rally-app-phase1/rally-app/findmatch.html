@@ -124,9 +124,8 @@
       <div class="logo">Rally</div>
       <div class="nav-links">
         <a href="findmatch.html" class="active">🔎 Tìm trận</a>
-        <a href="findcourt.html">📍 Tìm sân</a>
         <a href="creatematch.html">➕ Tạo trận</a>
-        <a href="#">💬 Trò chuyện</a>
+        <a href="chat.html">💬 Trò chuyện</a>
         <div class="notif-wrap">
           <a href="#" id="notifBtn">🔔 Thông báo</a>
         </div>
@@ -311,11 +310,14 @@ function renderMatchCard(m) {
     : "Miễn phí / tự thoả thuận";
   const requestStatus = requestStatusByMatchId.get(m.id);
   const isHost = currentUser && getMatchHostId(m) === currentUser.uid;
-  const buttonState = isFull
-    ? { label: "Đã đủ người", disabled: true }
-    : isHost
+  const isMember = currentUser && Array.isArray(m.playerUids) && m.playerUids.includes(currentUser.uid);
+  const buttonState = isHost
       ? { label: "Bạn là chủ trận", disabled: true }
-      : requestStatus === "pending"
+    : isMember
+      ? { label: "Bạn đã tham gia", disabled: true }
+    : isFull
+      ? { label: "Đã đủ người", disabled: true }
+    : requestStatus === "pending"
         ? { label: "Đang chờ duyệt", disabled: true }
         : requestStatus === "accepted"
           ? { label: "Đã được chấp nhận", disabled: true }
@@ -446,7 +448,7 @@ document.getElementById("resetFilters").addEventListener("click", () => {
   subscribe();
 });
 
-// Read area query parameter from URL (e.g., from findcourt.html link)
+// Read area query parameter from URL.
 const urlParams = new URLSearchParams(window.location.search);
 const areaParam = urlParams.get("area");
 if (areaParam) {

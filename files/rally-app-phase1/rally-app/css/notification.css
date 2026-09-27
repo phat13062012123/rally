@@ -129,7 +129,8 @@
   gap: 6px;
   margin-top: 8px;
 }
-.notif-actions button {
+.notif-actions button,
+.notif-actions a {
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -139,6 +140,8 @@
   background: var(--surface, #fff);
   color: var(--ink, #111827);
   transition: all 0.15s;
+  text-decoration: none;
+  display: inline-block;
 }
 .notif-actions .accept {
   background: var(--primary, #2563eb);
