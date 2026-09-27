@@ -181,12 +181,15 @@
 import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 import { getPlayerProfile } from "./js/profile-service.js";
 import { listenToMatches, formatMatchDate } from "./match-service.js";
-import { createJoinRequest, listenToPlayerJoinRequests, getMatchHostId } from "./js/match-request-service.js";
+import { createJoinRequest, listenToPlayerJoinRequests, listenToPlayerAcceptance, cancelOtherJoinRequests, getMatchHostId } from "./js/match-request-service.js";
 import { initNotificationUI } from "./js/notification-ui.js";
 
 let currentUser = null;
 const matchCache = new Map();
 const requestStatusByMatchId = new Map();
+let acceptedMatchId = null;
+let playerRequests = [];
+let acceptedRequestId = null;
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -226,7 +229,9 @@ function renderMatchCard(m) {
   const requestStatus = requestStatusByMatchId.get(m.id);
   const isHost = currentUser && getMatchHostId(m) === currentUser.uid;
   const isMember = currentUser && Array.isArray(m.playerUids) && m.playerUids.includes(currentUser.uid);
-  const buttonState = isHost
+  const buttonState = acceptedMatchId && acceptedMatchId !== m.id
+      ? { label: "Đã tham gia trận khác", disabled: true }
+    : isHost
       ? { label: "Bạn là chủ trận", disabled: true }
     : isMember
       ? { label: "Bạn đã tham gia", disabled: true }
@@ -238,7 +243,9 @@ function renderMatchCard(m) {
           ? { label: "Đã được chấp nhận", disabled: true }
           : requestStatus === "rejected"
             ? { label: "Yêu cầu bị từ chối", disabled: true }
-            : { label: "Tham gia trận", disabled: false };
+            : requestStatus === "cancelled"
+              ? { label: "Yêu cầu đã vô hiệu", disabled: true }
+              : { label: "Tham gia trận", disabled: false };
 
   return `
     <div class="match-card">
@@ -306,6 +313,7 @@ document.getElementById("matchListArea").addEventListener("click", async (e) => 
       MATCH_FULL: "Trận đã đủ người.",
       REQUEST_PENDING: "Bạn đã gửi yêu cầu và đang chờ chủ trận xác nhận.",
       REQUEST_ACCEPTED: "Bạn đã là thành viên của trận này.",
+      ALREADY_JOINED: "Bạn đã được nhận vào một trận khác.",
       REQUEST_REJECTED: "Yêu cầu trước đó đã bị từ chối.",
       REQUEST_EXISTS: "Bạn đã có yêu cầu cho trận này.",
       AUTH_REQUIRED: "Vui lòng đăng nhập lại.",
@@ -355,7 +363,15 @@ function showDashboard(profile, user) {
   if (currentUser) {
     listenToPlayerJoinRequests(currentUser.uid, (requests) => {
       requestStatusByMatchId.clear();
+      playerRequests = requests;
       requests.forEach((request) => requestStatusByMatchId.set(request.matchId, request.status));
+      if (acceptedRequestId) cancelOtherJoinRequests(playerRequests, acceptedRequestId).catch(console.error);
+      if (matchCache.size) renderMatches([...matchCache.values()]);
+    });
+    listenToPlayerAcceptance(currentUser.uid, (acceptance) => {
+      acceptedMatchId = acceptance?.matchId || null;
+      acceptedRequestId = acceptance?.requestId || null;
+      if (acceptedRequestId) cancelOtherJoinRequests(playerRequests, acceptedRequestId).catch(console.error);
       if (matchCache.size) renderMatches([...matchCache.values()]);
     });
   }
@@ -381,11 +397,10 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     const profile = await readProfileWithTimeout(user.uid);
-    if (!profile) {
-      window.location.replace("onboarding.html");
-      return;
-    }
-    showDashboard(profile, user);
+    showDashboard(profile || {
+      displayName: user.displayName || user.email,
+      photoURL: user.photoURL,
+    }, user);
   } catch (err) {
     console.error("Không đọc được hồ sơ Firestore:", err);
     showDashboard({

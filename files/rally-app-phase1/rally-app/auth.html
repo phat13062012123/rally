@@ -118,7 +118,7 @@
             <label>Mật khẩu</label>
             <div class="input-icon-wrap">
               <input class="input" type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
-              <button type="button" class="icon-btn" data-toggle="loginPassword">👁️</button>
+              
             </div>
           </div>
           <div class="row-between">
@@ -193,8 +193,9 @@ import {
 import { routeAfterAuth } from "./js/profile-service.js";
 
 // Nếu đã đăng nhập rồi mà vào lại trang auth -> chuyển thẳng đi, không bắt đăng nhập lại
+let registering = false;
 onAuthStateChanged(auth, (user) => {
-  if (user) routeAfterAuth(user);
+  if (user && !registering) routeAfterAuth(user);
 });
 
 // ---------- UI: tab switching ----------
@@ -296,12 +297,14 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   }
 
   setLoading(btn, true);
+  registering = true;
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     showToast("Tạo tài khoản thành công!");
     await routeAfterAuth(cred.user);
   } catch (err) {
+    registering = false;
     setError(friendlyError(err.code));
     setLoading(btn, false, "Tạo tài khoản");
   }

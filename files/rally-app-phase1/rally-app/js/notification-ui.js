@@ -13,6 +13,8 @@ import {
 import {
   acceptJoinRequest,
   rejectJoinRequest,
+  listenToHostJoinRequests,
+  listenToPlayerAcceptance,
 } from "./match-request-service.js";
 
 function escapeHtml(str) {
@@ -81,6 +83,10 @@ export function initNotificationUI(userId) {
   }
 
   let notifications = [];
+  const requestStatuses = new Map();
+  const acceptedPlayers = new Map();
+  const playerSubscriptions = new Map();
+  const requestPlayerIds = new Map();
 
   /* ---------- Badge ---------- */
   function renderBadge() {
@@ -111,7 +117,12 @@ export function initNotificationUI(userId) {
     list.innerHTML = notifications
       .map((n) => {
         const isPendingReq =
-          n.type === "match_join_request" && n.requestId && !n.handled;
+          n.type === "match_join_request" && n.requestId && !n.handled &&
+          requestStatuses.get(n.requestId) === "pending" &&
+          !acceptedPlayers.has(requestPlayerIds.get(n.requestId));
+        const isCancelledReq = n.type === "match_join_request" &&
+          (requestStatuses.get(n.requestId) === "cancelled" ||
+           (requestStatuses.get(n.requestId) === "pending" && acceptedPlayers.has(requestPlayerIds.get(n.requestId))));
 
         const hasChat = n.type === "match_request_accepted" && n.chatId;
 
@@ -136,7 +147,7 @@ export function initNotificationUI(userId) {
               ${n.read ? "" : '<span class="notif-dot"></span>'}
               ${escapeHtml(n.title || "Thông báo")}
             </div>
-            <div class="notif-msg">${escapeHtml(n.message || "")}</div>
+            <div class="notif-msg">${escapeHtml(isCancelledReq ? "Người chơi đã được nhận vào trận khác; yêu cầu này không còn hiệu lực." : n.message || "")}</div>
             <div class="notif-time">${timeAgo(n.createdAt)}</div>
             ${actions}
           </div>`;
@@ -161,6 +172,8 @@ export function initNotificationUI(userId) {
     if (actionBtn) {
       e.stopPropagation();
       const reqId = actionBtn.dataset.req;
+      if (actionBtn.disabled || requestStatuses.get(reqId) !== "pending" ||
+          acceptedPlayers.has(requestPlayerIds.get(reqId))) return;
       const action = actionBtn.dataset.action;
       const item = actionBtn.closest(".notif-item");
       const notifId = item?.dataset.id;
@@ -185,7 +198,9 @@ export function initNotificationUI(userId) {
         );
       } catch (err) {
         console.error("Xử lý yêu cầu thất bại:", err);
-        alert("Không thể xử lý yêu cầu: " + (err?.message || err));
+        alert(err?.message === "ALREADY_JOINED"
+          ? "Người chơi đã được nhận vào trận khác; yêu cầu này không còn hiệu lực."
+          : "Không thể xử lý yêu cầu: " + (err?.message || err));
         actionBtn.disabled = false;
         actionBtn.textContent = original;
       }
@@ -216,6 +231,33 @@ export function initNotificationUI(userId) {
     });
 
   /* ---------- Realtime subscribe ---------- */
+  listenToHostJoinRequests(userId, (requests) => {
+    requestStatuses.clear();
+    requestPlayerIds.clear();
+    const pendingPlayers = new Set();
+    requests.forEach((request) => {
+      requestStatuses.set(request.id, request.status);
+      requestPlayerIds.set(request.id, request.playerId);
+      if (request.status === "pending") pendingPlayers.add(request.playerId);
+    });
+    for (const [playerId, unsubscribe] of playerSubscriptions) {
+      if (!pendingPlayers.has(playerId)) {
+        unsubscribe();
+        playerSubscriptions.delete(playerId);
+        acceptedPlayers.delete(playerId);
+      }
+    }
+    for (const playerId of pendingPlayers) {
+      if (!playerSubscriptions.has(playerId)) {
+        playerSubscriptions.set(playerId, listenToPlayerAcceptance(playerId, (acceptance) => {
+          if (acceptance) acceptedPlayers.set(playerId, acceptance.matchId);
+          else acceptedPlayers.delete(playerId);
+          renderList();
+        }));
+      }
+    }
+    renderList();
+  });
   listenToNotifications(
     userId,
     (items) => {

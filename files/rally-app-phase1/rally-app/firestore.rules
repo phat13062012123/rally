@@ -18,6 +18,17 @@ service cloud.firestore {
         (resource.data.hostId == request.auth.uid || resource.data.hostUid == request.auth.uid);
     }
 
+    match /playerAcceptances/{playerId} {
+      allow get: if signedIn();
+      allow create: if signedIn() &&
+        request.resource.data.playerId == playerId &&
+        request.resource.data.hostId == request.auth.uid &&
+        getAfter(/databases/$(database)/documents/matchRequests/$(request.resource.data.requestId)).data.status == 'accepted' &&
+        getAfter(/databases/$(database)/documents/matchRequests/$(request.resource.data.requestId)).data.playerId == playerId &&
+        getAfter(/databases/$(database)/documents/matchRequests/$(request.resource.data.requestId)).data.hostId == request.auth.uid &&
+        getAfter(/databases/$(database)/documents/matchRequests/$(request.resource.data.requestId)).data.matchId == request.resource.data.matchId;
+    }
+
     match /matchRequests/{requestId} {
       // Client cần get document ID xác định trước trong transaction để kiểm tra
       // yêu cầu trùng. Khi document chưa tồn tại, resource.data chưa có
@@ -25,12 +36,18 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if signedIn() &&
         (resource.data.playerId == request.auth.uid || resource.data.hostId == request.auth.uid);
-      allow create: if signedIn() && request.resource.data.playerId == request.auth.uid;
-      allow update: if signedIn() &&
-        resource.data.hostId == request.auth.uid &&
-        resource.data.status == 'pending' &&
-        (request.resource.data.status == 'accepted' || request.resource.data.status == 'rejected') &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt']);
+      allow create: if signedIn() && request.resource.data.playerId == request.auth.uid &&
+        !exists(/databases/$(database)/documents/playerAcceptances/$(request.auth.uid));
+      allow update: if signedIn() && resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt']) &&
+        ((resource.data.hostId == request.auth.uid && request.resource.data.status == 'rejected') ||
+         (resource.data.hostId == request.auth.uid && request.resource.data.status == 'accepted' &&
+          getAfter(/databases/$(database)/documents/playerAcceptances/$(resource.data.playerId)).data.requestId == requestId &&
+          !exists(/databases/$(database)/documents/playerAcceptances/$(resource.data.playerId))) ||
+         (request.auth.uid == resource.data.playerId &&
+          exists(/databases/$(database)/documents/playerAcceptances/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/playerAcceptances/$(request.auth.uid)).data.requestId != requestId &&
+          request.resource.data.status == 'cancelled'));
     }
 
     match /notifications/{notificationId} {

@@ -64,32 +64,12 @@ export function listenToPlayerProfile(uid, onData, onError) {
 }
 
 /**
- * Điều hướng sau khi đăng nhập dựa trên trạng thái hồ sơ
+ * Điều hướng sau khi xác thực, không yêu cầu hoàn tất onboarding
  */
 export async function routeAfterAuth(user) {
   if (!user) return;
-  
-  try {
-    const profile = await getPlayerProfile(user.uid);
-    // Legacy profiles may lack optional fields but are still valid profiles.
-    if (profile) {
-      window.location.replace("dashboard.html");
-      return;
-    }
-    if (!profile) {
-      window.location.replace("onboarding.html");
-    } else {
-      // Kiểm tra xem user đã hoàn thành onboarding chưa
-      if (!profile.skillLevel || !profile.favoriteCourt) {
-        window.location.replace("onboarding.html");
-      } else {
-        window.location.replace("dashboard.html");
-      }
-    }
-  } catch (error) {
-    console.error("Error routing after auth:", error);
-    window.location.replace("dashboard.html");
-  }
+
+  window.location.replace("dashboard.html");
 }
 
 // API used by onboarding.html to create the initial player profile.

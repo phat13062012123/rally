@@ -324,11 +324,6 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   try {
     currentProfile = await getProfileWithTimeout(user.uid);
-    if (!currentProfile) {
-      // Chưa có hồ sơ người chơi -> bắt hoàn tất onboarding trước khi tạo trận
-      window.location.replace("onboarding.html");
-      return;
-    }
   } catch (err) {
     console.error("Không đọc được hồ sơ Firestore:", err);
   }

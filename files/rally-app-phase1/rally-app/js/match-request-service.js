@@ -12,11 +12,13 @@ import {
   runTransaction,
   serverTimestamp,
   arrayUnion,
+  writeBatch,
 } from "./firebase-config.js";
 import { createNotification } from "./notification-service.js";
 
 const REQUESTS = "matchRequests";
 const MATCHES = "matches";
+const ACCEPTANCES = "playerAcceptances";
 
 /**
  * ⚠️ Nếu project lưu UID host dưới field khác, sửa duy nhất hàm này.
@@ -48,7 +50,7 @@ function buildChatId(matchId, playerId) {
  * Tạo join request. Ném Error với message là mã lỗi:
  *   AUTH_REQUIRED | MATCH_ID_MISSING | HOST_ID_MISSING | HOST_CANNOT_JOIN
  *   MATCH_NOT_FOUND | MATCH_FULL
- *   REQUEST_PENDING | REQUEST_ACCEPTED | REQUEST_REJECTED | REQUEST_EXISTS
+ *   REQUEST_PENDING | REQUEST_ACCEPTED | REQUEST_REJECTED | REQUEST_EXISTS | ALREADY_JOINED
  *
  * @returns {Promise<string>} requestId
  */
@@ -67,9 +69,12 @@ export async function createJoinRequest({ match, player }) {
   const matchRef = doc(db, MATCHES, matchId);
   const chatId = buildChatId(matchId, player.uid);
   const chatRef = doc(db, "chats", chatId);
+  const acceptanceRef = doc(db, ACCEPTANCES, player.uid);
 
   try {
     await runTransaction(db, async (tx) => {
+      const acceptanceSnap = await tx.get(acceptanceRef);
+      if (acceptanceSnap.exists()) throw new Error("ALREADY_JOINED");
       const matchSnap = await tx.get(matchRef);
       if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
 
@@ -147,6 +152,22 @@ export function listenToPlayerJoinRequests(playerId, onData, onError) {
   );
 }
 
+export function listenToPlayerAcceptance(playerId, onData, onError) {
+  if (!playerId) return () => {};
+  return onSnapshot(doc(db, ACCEPTANCES, playerId),
+    (snap) => onData(snap.exists() ? snap.data() : null), onError);
+}
+
+export async function cancelOtherJoinRequests(requests, acceptedRequestId) {
+  const others = requests.filter((request) => request.id !== acceptedRequestId && request.status === "pending");
+  for (let i = 0; i < others.length; i += 400) {
+    const batch = writeBatch(db);
+    others.slice(i, i + 400).forEach((request) =>
+      batch.update(doc(db, REQUESTS, request.id), { status: "cancelled", respondedAt: serverTimestamp() }));
+    await batch.commit();
+  }
+}
+
 /**
  * Lắng nghe tất cả request gửi đến 1 host.
  * @returns {Function} unsubscribe
@@ -166,6 +187,7 @@ export function listenToHostJoinRequests(hostId, onData, onError) {
  *   - request.status: pending → accepted
  *   - match.currentPlayers += 1 (không double)
  *   - không vượt maxPlayers
+ *   - mỗi người chơi chỉ có một yêu cầu được chấp nhận
  */
 export async function acceptJoinRequest(requestId, hostId) {
   if (!requestId || !hostId) throw new Error("INVALID_ARGS");
@@ -182,7 +204,10 @@ export async function acceptJoinRequest(requestId, hostId) {
     if (reqData.status !== "pending") throw new Error("REQUEST_NOT_PENDING");
 
     const matchRef = doc(db, MATCHES, reqData.matchId);
+    const acceptanceRef = doc(db, ACCEPTANCES, reqData.playerId);
     const matchSnap = await tx.get(matchRef);
+    const acceptanceSnap = await tx.get(acceptanceRef);
+    if (acceptanceSnap.exists()) throw new Error("ALREADY_JOINED");
     if (!matchSnap.exists()) throw new Error("MATCH_NOT_FOUND");
 
     const match = matchSnap.data();
@@ -193,6 +218,13 @@ export async function acceptJoinRequest(requestId, hostId) {
     const responseNotificationRef = doc(collection(db, "notifications"));
     const chatId = buildChatId(reqData.matchId, reqData.playerId);
 
+    tx.set(acceptanceRef, {
+      playerId: reqData.playerId,
+      hostId,
+      matchId: reqData.matchId,
+      requestId,
+      acceptedAt: serverTimestamp(),
+    });
     tx.update(reqRef, { status: "accepted", respondedAt: serverTimestamp() });
     tx.update(matchRef, {
       currentPlayers: current + 1,
