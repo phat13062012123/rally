@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — Rally</title>
+<title>Sân nhà — Rally</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/notification.css">
 <style>
@@ -157,14 +157,18 @@
 
   <div class="wrap">
     <div class="welcome-band">
-      <div class="eyebrow">Dashboard</div>
+      <div class="eyebrow">Sân nhà</div>
       <h1 id="welcomeText">Chào mừng trở lại 👋</h1>
-      <p>Đây là nơi bắt đầu — tìm trận, tạo trận, hoặc xem lại hồ sơ của bạn.</p>
+      <p>Đây là nơi bắt đầu — tìm trận cầu lông, tạo trận, hoặc xem lại hồ sơ của bạn.</p>
+    </div>
+    <div class="court-banner">
+      <div class="mark" aria-hidden="true"></div>
+      <p><strong>Sẵn sàng lên lưới?</strong> Ghép người chơi cùng trình độ và giữ nhịp trận đấu quanh bạn.</p>
     </div>
 
     <div class="matches-section">
       <div class="matches-section-head">
-        <h2>Trận đang tuyển người</h2>
+        <h2>Trận cầu lông đang tuyển người</h2>
         <a href="findmatch.html">Xem tất cả</a>
       </div>
       <div id="matchListArea">
@@ -183,6 +187,7 @@ import { getPlayerProfile } from "./js/profile-service.js";
 import { listenToMatches, formatMatchDate } from "./match-service.js";
 import { createJoinRequest, listenToPlayerJoinRequests, listenToPlayerAcceptance, cancelOtherJoinRequests, getMatchHostId } from "./js/match-request-service.js";
 import { initNotificationUI } from "./js/notification-ui.js";
+import { skillLabel, stylesText } from "./js/ui-labels.js";
 
 let currentUser = null;
 const matchCache = new Map();

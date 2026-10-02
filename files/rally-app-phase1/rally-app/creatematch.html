@@ -79,6 +79,7 @@
   .stepper .val { font-family: var(--font-mono); font-size: 16px; font-weight: 600; min-width: 28px; text-align: center; }
 
   .price-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
 </style>
 </head>
 <body>
@@ -134,9 +135,13 @@
 
   <div class="wrap">
     <div class="page-head">
-      <div class="eyebrow">Create Match</div>
+      <div class="eyebrow">Host trận</div>
       <h1>Tạo trận mới</h1>
-      <p>Đăng trận để tuyển người — bạn sẽ tự động là người chơi đầu tiên và là host.</p>
+      <p>Đăng trận cầu lông để tuyển người — bạn sẽ tự động là người chơi đầu tiên và là host.</p>
+    </div>
+    <div class="court-banner" style="max-width:620px;margin:16px 0 0;">
+      <div class="mark" aria-hidden="true"></div>
+      <p><strong>Bạn cầm lưới trước.</strong> Chọn sân, giờ và số người — Rally giúp lấp slot còn lại.</p>
     </div>
 
     <div class="form-shell">
@@ -148,7 +153,7 @@
           <h2>Thông tin trận</h2>
           <div class="field">
             <label>Tên trận</label>
-            <input class="input" type="text" id="title" placeholder="VD: Saturday Smash" required>
+            <input class="input" type="text" id="title" placeholder="VD: Smash tối thứ Bảy" required>
           </div>
           <div class="field-row">
             <div class="field">
@@ -198,17 +203,17 @@
           <div class="field">
             <label>Trình độ yêu cầu</label>
             <div class="pill-group" id="skillGroup">
-              <label class="pill-option"><input type="radio" name="skill" value="All" checked> Tất cả</label>
-              <label class="pill-option"><input type="radio" name="skill" value="Beginner"> Beginner</label>
-              <label class="pill-option"><input type="radio" name="skill" value="Intermediate"> Intermediate</label>
-              <label class="pill-option"><input type="radio" name="skill" value="Advanced"> Advanced</label>
+              <label class="pill-option"><input type="radio" name="skill" value="All" checked> Mọi trình độ</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Beginner"> Mới chơi</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Intermediate"> Trung cấp</label>
+              <label class="pill-option"><input type="radio" name="skill" value="Advanced"> Nâng cao</label>
             </div>
           </div>
           <div class="field" style="margin-top:16px;">
             <label>Lối chơi</label>
             <div class="pill-group" id="styleGroup">
-              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Singles"> Singles</label>
-              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Doubles" checked> Doubles</label>
+              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Singles"> Đơn</label>
+              <label class="pill-option pill-option-sm"><input type="checkbox" name="style" value="Doubles" checked> Đôi</label>
             </div>
           </div>
         </div>

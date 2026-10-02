@@ -8,8 +8,8 @@
   <style>
     .chat-page { padding: 36px 0 52px; }
     .chat-page h1 { font-family: var(--font-display); font-size: 29px; margin-bottom: 7px; }
-    .chat-page > .wrap > p { color: var(--text-secondary); margin-bottom: 24px; }
-    .chat-shell { height: min(650px, calc(100vh - 185px)); min-height: 450px; display: grid; grid-template-columns: 310px 1fr; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+    .chat-page > .wrap > p { color: var(--text-secondary); margin-bottom: 18px; }
+    .chat-shell { height: min(650px, calc(100vh - 185px)); min-height: 450px; display: grid; grid-template-columns: 310px 1fr; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-card); }
     .chat-sidebar { border-right: 1px solid var(--border); overflow-y: auto; }
     .chat-sidebar-head { padding: 18px; border-bottom: 1px solid var(--border); font-weight: 700; }
     .chat-row { width: 100%; border: 0; border-bottom: 1px solid var(--border); background: transparent; padding: 15px 17px; text-align: left; cursor: pointer; color: var(--ink); }
@@ -20,7 +20,10 @@
     .chat-main-head { padding: 16px 20px; border-bottom: 1px solid var(--border); }
     .chat-main-head h2 { font-size: 16px; margin: 0; }
     .chat-main-head p { color: var(--text-secondary); font-size: 12px; margin: 4px 0 0; }
-    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background:
+      linear-gradient(180deg, rgba(23,138,75,0.05), transparent 120px),
+      repeating-linear-gradient(90deg, transparent, transparent 47px, rgba(23,138,75,0.06) 47px, rgba(23,138,75,0.06) 48px),
+      var(--bg); }
     .message { max-width: min(78%, 480px); padding: 10px 12px; border-radius: 13px; background: var(--surface); border: 1px solid var(--border); align-self: flex-start; font-size: 13.5px; line-height: 1.45; }
     .message.mine { align-self: flex-end; background: var(--primary); border-color: var(--primary); color: #fff; }
     .message-name { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
@@ -48,7 +51,11 @@
     <main class="chat-page">
       <div class="wrap">
         <h1>Trò chuyện</h1>
-        <p>Trao đổi với host hoặc người chơi đã gửi yêu cầu tham gia trận.</p>
+        <p>Trao đổi với host hoặc người chơi trước khi lên sân.</p>
+        <div class="court-banner" style="margin-bottom:18px;">
+          <div class="mark" aria-hidden="true"></div>
+          <p><strong>Chat trước trận.</strong> Chốt giờ, chia vợt, và hẹn nhau ở cổng sân.</p>
+        </div>
         <div class="chat-shell" id="chatShell">
           <aside class="chat-sidebar"><div class="chat-sidebar-head">Cuộc trò chuyện</div><div style="padding:12px;border-bottom:1px solid var(--border);"><input class="input" id="chatSearch" type="search" placeholder="Tìm theo tên người chơi..."></div><div id="chatList"><div class="empty-chat">Đang tải...</div></div></aside>
           <section class="chat-main" id="chatMain"><div class="empty-chat"><div class="icon">💬</div><div>Chọn một cuộc trò chuyện để bắt đầu.</div></div></section>
