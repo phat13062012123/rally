@@ -32,6 +32,12 @@ import {
   deleteDoc,
   arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 // Cấu hình Firebase của bạn - THAY THẾ BẰNG CONFIG CỦA BẠN
 const firebaseConfig = {
@@ -48,12 +54,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Export các hàm và đối tượng cần thiết
 export {
   auth,
   db,
+  storage,
   googleProvider,
   onAuthStateChanged,
   signOut,
@@ -79,4 +87,7 @@ export {
   writeBatch,
   deleteDoc,
   arrayUnion,
+  ref,
+  uploadBytes,
+  getDownloadURL,
 };

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — Rally</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/feedback.css">
   <style>
     /* ========== DASHBOARD HEADER ========== */
     .dashboard-header {
@@ -348,6 +349,8 @@
 import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 import { getPlayerProfile } from "./js/profile-service.js";
 import { listenToMatches, formatMatchDate } from "./match-service.js";
+import { initAvatarUpload } from "./js/avatar-ui.js";
+import { confirmDialog } from "./js/ui-feedback.js";
 
 // ========== UTILITY FUNCTIONS ==========
 function initials(name) {
@@ -388,6 +391,7 @@ function openCreateMenu() {
 
 // ========== PROFILE LOADING ==========
 function loadUserProfile(user) {
+  initAvatarUpload(user);
   getPlayerProfile(user.uid)
     .then((profile) => {
       if (!profile) {
@@ -564,7 +568,7 @@ onAuthStateChanged(auth, (user) => {
 // ========== GLOBAL FUNCTIONS ==========
 window.toggleProfileModal = toggleProfileModal;
 window.handleLogout = async () => {
-  if (confirm("Đăng xuất khỏi Rally?")) {
+  if (await confirmDialog({ title: "Đăng xuất", message: "Bạn muốn đăng xuất khỏi Rally?", confirmText: "Đăng xuất" })) {
     await signOut(auth);
     window.location.href = "auth.html";
   }

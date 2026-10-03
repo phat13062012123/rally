@@ -48,19 +48,20 @@ export function listenToMessages(chatId, onData, onError) {
   );
 }
 
-export async function sendMessage({ chatId, senderId, senderName, text }) {
+export async function sendMessage({ chatId, senderId, senderName, text, imageUrl = "" }) {
   const cleanText = String(text || "").trim();
-  if (!chatId || !senderId || !cleanText) throw new Error("INVALID_MESSAGE");
+  if (!chatId || !senderId || (!cleanText && !imageUrl)) throw new Error("INVALID_MESSAGE");
 
   await addDoc(collection(db, CHATS, chatId, "messages"), {
     senderId,
     senderName: senderName || "Người chơi Rally",
     text: cleanText,
+    imageUrl,
     createdAt: serverTimestamp(),
   });
 
   await updateDoc(doc(db, CHATS, chatId), {
-    lastMessage: cleanText,
+    lastMessage: cleanText || "📷 Đã gửi hình ảnh",
     lastMessageAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

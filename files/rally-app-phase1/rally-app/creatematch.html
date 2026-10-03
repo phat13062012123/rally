@@ -6,6 +6,7 @@
 <title>Tạo trận — Rally</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/notification.css">
+<link rel="stylesheet" href="css/feedback.css">
 <style>
   .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
   .user-avatar {
@@ -70,6 +71,37 @@
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .field-row .field { margin-bottom: 0; }
 
+  .date-time-shell {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-top: 14px;
+  }
+  .date-time-card {
+    padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px;
+    background: linear-gradient(180deg, rgba(23,138,75,0.04), rgba(255,255,255,0.9));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .date-time-card label {
+    display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary);
+  }
+  .date-time-card .input {
+    background: rgba(255,255,255,0.9); border-radius: 12px; border: 1px solid rgba(23,138,75,0.18);
+    box-shadow: 0 2px 10px rgba(11,58,38,0.04);
+  }
+  .time-pills {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  }
+  .time-pill {
+    padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-secondary); font-size: 12.5px;
+    font-weight: 600; cursor: pointer; transition: all .15s ease;
+  }
+  .time-pill:hover { border-color: var(--primary); color: var(--primary); }
+  .time-pill.active {
+    background: var(--primary-light); color: var(--primary-dark); border-color: rgba(23,138,75,0.28);
+    box-shadow: 0 8px 18px rgba(23,138,75,0.08);
+  }
+
   .stepper { display: flex; align-items: center; gap: 10px; }
   .stepper button {
     width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
@@ -94,11 +126,11 @@
     <div class="wrap">
       <div class="logo">Rally</div>
       <div class="nav-links">
-        <a href="findmatch.html">🔎 Tìm trận</a>
-        <a href="creatematch.html" class="active">➕ Tạo trận</a>
-        <a href="chat.html">💬 Trò chuyện</a>
+        <a href="findmatch.html"><span class="nav-icon">search</span><span>Tìm trận</span></a>
+        <a href="creatematch.html" class="active"><span class="nav-icon">add_circle</span><span>Tạo trận</span></a>
+        <a href="chat.html"><span class="nav-icon">chat</span><span>Trò chuyện</span></a>
         <div class="notif-wrap">
-          <a href="#" id="notifBtn">🔔 Thông báo</a>
+          <a href="#" id="notifBtn"><span class="nav-icon">notifications</span><span>Thông báo</span></a>
         </div>
       </div>
       <div class="user-menu">
@@ -179,14 +211,22 @@
 
         <div class="form-section">
           <h2>Thời gian</h2>
-          <div class="field-row">
-            <div class="field">
+          <div class="date-time-shell">
+            <div class="date-time-card">
               <label>Ngày chơi</label>
               <input class="input" type="date" id="date" required>
             </div>
-            <div class="field"></div>
+            <div class="date-time-card">
+              <label>Mốc giờ gợi ý</label>
+              <div class="time-pills" id="timePresetPills">
+                <button type="button" class="time-pill" data-time="18:00">18:00</button>
+                <button type="button" class="time-pill active" data-time="19:00">19:00</button>
+                <button type="button" class="time-pill" data-time="20:00">20:00</button>
+                <button type="button" class="time-pill" data-time="21:00">21:00</button>
+              </div>
+            </div>
           </div>
-          <div class="field-row">
+          <div class="field-row" style="margin-top:16px;">
             <div class="field">
               <label>Giờ bắt đầu</label>
               <input class="input" type="time" id="startTime" required>
@@ -249,6 +289,8 @@ import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 import { getPlayerProfile } from "./js/profile-service.js";
 import { createMatch } from "./match-service.js";
 import { initNotificationUI } from "./js/notification-ui.js";
+import { initAvatarUpload } from "./js/avatar-ui.js";
+import { confirmDialog } from "./js/ui-feedback.js";
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -272,6 +314,7 @@ document.addEventListener("click", (e) => {
 function loadProfile() {
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
+    initAvatarUpload(user);
     try {
       const profile = await Promise.race([
         getPlayerProfile(user.uid),
@@ -359,6 +402,23 @@ document.querySelector('input[name="style"][checked]')?.closest(".pill-option")?
 document.querySelectorAll('input[name="style"]:checked').forEach((i) => i.closest(".pill-option").classList.add("selected"));
 document.querySelector('input[name="skill"]:checked')?.closest(".pill-option")?.classList.add("selected");
 
+const startTimeInput = document.getElementById("startTime");
+const endTimeInput = document.getElementById("endTime");
+
+document.querySelectorAll(".time-pill").forEach((pill) => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".time-pill").forEach((item) => item.classList.remove("active"));
+    pill.classList.add("active");
+    const chosen = pill.dataset.time;
+    startTimeInput.value = chosen;
+    const [hours, minutes] = chosen.split(":").map(Number);
+    const endMinutes = (hours * 60 + minutes + 90) % 1440;
+    const endHours = Math.floor(endMinutes / 60);
+    const endTimeValue = `${String(endHours).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+    endTimeInput.value = endTimeValue;
+  });
+});
+
 // Stepper số người (2 - 20)
 let maxPlayers = 8;
 const playersVal = document.getElementById("playersVal");
@@ -429,7 +489,7 @@ document.getElementById("createForm").addEventListener("submit", async (e) => {
 
 window.toggleProfileModal = toggleProfileModal;
 window.handleLogout = async () => {
-  if (confirm("Đăng xuất khỏi Rally?")) {
+  if (await confirmDialog({ title: "Đăng xuất", message: "Bạn muốn đăng xuất khỏi Rally?", confirmText: "Đăng xuất" })) {
     await signOut(auth);
     window.location.href = "auth.html";
   }

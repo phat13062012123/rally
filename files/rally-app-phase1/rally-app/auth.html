@@ -193,7 +193,7 @@ import {
   auth, googleProvider,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup,
   updateProfile, sendPasswordResetEmail, onAuthStateChanged,
-} from "./js/firebase-config.js";
+} from "./js/firebase-config.js";    
 import { routeAfterAuth } from "./js/profile-service.js";
 
 // Nếu đã đăng nhập rồi mà vào lại trang auth -> chuyển thẳng đi, không bắt đăng nhập lại
@@ -247,6 +247,8 @@ function friendlyError(code) {
     "auth/invalid-credential": "Email hoặc mật khẩu không đúng.",
     "auth/email-already-in-use": "Email này đã được đăng ký.",
     "auth/weak-password": "Mật khẩu quá yếu, cần ít nhất 6 ký tự.",
+    "auth/operation-not-allowed": "Phương thức đăng nhập này chưa được bật trong Firebase Authentication.",
+    "auth/unauthorized-domain": "Tên miền hiện tại chưa được thêm vào Firebase Authentication → Authorized domains.",
     "auth/popup-closed-by-user": "Bạn đã đóng cửa sổ đăng nhập Google.",
     "auth/network-request-failed": "Lỗi kết nối mạng, thử lại nhé.",
     "auth/too-many-requests": "Bạn đã thử quá nhiều lần, vui lòng chờ một chút.",

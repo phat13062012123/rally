@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tìm sân — Rally</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/feedback.css">
 <style>
   .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
   .user-avatar {
@@ -114,10 +115,10 @@
     <div class="wrap">
       <div class="logo">Rally</div>
       <div class="nav-links">
-        <a href="findmatch.html">🔎 Tìm trận</a>
-        <a href="creatematch.html">➕ Tạo trận</a>
-        <a href="chat.html">💬 Trò chuyện</a>
-        <a href="#">🔔 Thông báo</a>
+        <a href="findmatch.html"><span class="nav-icon">search</span><span>Tìm trận</span></a>
+        <a href="creatematch.html"><span class="nav-icon">add_circle</span><span>Tạo trận</span></a>
+        <a href="chat.html"><span class="nav-icon">chat</span><span>Trò chuyện</span></a>
+        <a href="#"><span class="nav-icon">notifications</span><span>Thông báo</span></a>
       </div>
       <div class="user-menu">
         <div class="user-avatar" id="userAvatar" title="Hồ sơ cá nhân" onclick="toggleProfileModal(event)">?</div>
@@ -193,6 +194,8 @@
 import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 import { getPlayerProfile } from "./js/profile-service.js";
 import { listenToCourts } from "./js/court-service.js";
+import { initAvatarUpload } from "./js/avatar-ui.js";
+import { confirmDialog } from "./js/ui-feedback.js";
 
 function initials(name) {
   return (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -295,6 +298,7 @@ onAuthStateChanged(auth, (user) => {
     window.location.replace("auth.html");
     return;
   }
+  initAvatarUpload(user);
 
   // Load user profile
   getPlayerProfile(user.uid)
@@ -333,7 +337,7 @@ onAuthStateChanged(auth, (user) => {
 
 window.toggleProfileModal = toggleProfileModal;
 window.handleLogout = async () => {
-  if (confirm("Đăng xuất khỏi Rally?")) {
+  if (await confirmDialog({ title: "Đăng xuất", message: "Bạn muốn đăng xuất khỏi Rally?", confirmText: "Đăng xuất" })) {
     await signOut(auth);
     window.location.href = "auth.html";
   }

@@ -16,6 +16,7 @@ import {
   listenToHostJoinRequests,
   listenToPlayerAcceptance,
 } from "./match-request-service.js";
+import { showToast } from "./ui-feedback.js";
 
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => ({
@@ -191,16 +192,16 @@ export function initNotificationUI(userId) {
         if (notifId) {
           await updateNotification(notifId, { read: true, handled: true });
         }
-        alert(
+        showToast(
           action === "accept"
             ? "Đã chấp nhận người chơi. Thông báo kết quả đã được gửi."
             : "Đã từ chối yêu cầu. Thông báo kết quả đã được gửi."
         );
       } catch (err) {
         console.error("Xử lý yêu cầu thất bại:", err);
-        alert(err?.message === "ALREADY_JOINED"
+        showToast(err?.message === "ALREADY_JOINED"
           ? "Người chơi đã được nhận vào trận khác; yêu cầu này không còn hiệu lực."
-          : "Không thể xử lý yêu cầu: " + (err?.message || err));
+          : "Không thể xử lý yêu cầu: " + (err?.message || err), "error");
         actionBtn.disabled = false;
         actionBtn.textContent = original;
       }

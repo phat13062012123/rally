@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap');
 
 :root {
   --primary: #178A4B;
@@ -74,9 +74,19 @@ input, select, textarea { font-family: inherit; }
   background: var(--shuttle-mark) center / contain no-repeat;
   filter: drop-shadow(0 2px 4px rgba(15,107,56,0.18));
 }
-.nav-links { display: flex; gap: 28px; font-size: 14.5px; font-weight: 600; }
-.nav-links a { color: var(--text-secondary); transition: color .15s; }
+.nav-links { display: flex; align-items: center; gap: 20px; font-size: 14.5px; font-weight: 600; }
+.nav-links a {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-secondary); transition: color .15s;
+  line-height: 1;
+}
 .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+.nav-icon {
+  font-family: 'Material Symbols Outlined', 'Segoe UI Symbol', sans-serif;
+  font-size: 18px; line-height: 1;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  display: inline-flex; align-items: center; justify-content: center;
+}
 .nav-actions { display: flex; gap: 12px; align-items: center; }
 
 /* ---------- BUTTONS ---------- */

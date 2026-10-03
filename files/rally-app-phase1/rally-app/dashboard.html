@@ -6,6 +6,7 @@
 <title>Sân nhà — Rally</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/notification.css">
+<link rel="stylesheet" href="css/feedback.css">
 <style>
   .user-menu { display: flex; align-items: center; gap: 10px; position: relative; }
   .user-avatar {
@@ -116,11 +117,11 @@
     <div class="wrap">
       <div class="logo"><a href="dashboard.html">Rally</a></div>
       <div class="nav-links">
-        <a href="findmatch.html">🔎 Tìm trận</a>
-        <a href="creatematch.html">➕ Tạo trận</a>
-        <a href="chat.html">💬 Trò chuyện</a>
+        <a href="findmatch.html"><span class="nav-icon">search</span><span>Tìm trận</span></a>
+        <a href="creatematch.html"><span class="nav-icon">add_circle</span><span>Tạo trận</span></a>
+        <a href="chat.html"><span class="nav-icon">chat</span><span>Trò chuyện</span></a>
         <div class="notif-wrap">
-          <a href="#" id="notifBtn">🔔 Thông báo</a>
+          <a href="#" id="notifBtn"><span class="nav-icon">notifications</span><span>Thông báo</span></a>
         </div>
       </div>
       <div class="user-menu">
@@ -188,6 +189,8 @@ import { listenToMatches, formatMatchDate } from "./match-service.js";
 import { createJoinRequest, listenToPlayerJoinRequests, listenToPlayerAcceptance, cancelOtherJoinRequests, getMatchHostId } from "./js/match-request-service.js";
 import { initNotificationUI } from "./js/notification-ui.js";
 import { skillLabel, stylesText } from "./js/ui-labels.js";
+import { initAvatarUpload } from "./js/avatar-ui.js";
+import { showToast, confirmDialog } from "./js/ui-feedback.js";
 
 let currentUser = null;
 const matchCache = new Map();
@@ -310,7 +313,7 @@ document.getElementById("matchListArea").addEventListener("click", async (e) => 
     btn.textContent = "Đã gửi yêu cầu";
     btn.classList.remove("btn-primary");
     btn.classList.add("btn-outline");
-    alert("Đã gửi yêu cầu tham gia. Chủ trận sẽ nhận được thông báo để xác nhận.");
+    showToast("Đã gửi yêu cầu tham gia. Chủ trận sẽ nhận được thông báo.");
   } catch (err) {
     const code = err?.message || "";
     const messages = {
@@ -323,7 +326,7 @@ document.getElementById("matchListArea").addEventListener("click", async (e) => 
       REQUEST_EXISTS: "Bạn đã có yêu cầu cho trận này.",
       AUTH_REQUIRED: "Vui lòng đăng nhập lại.",
     };
-    alert(messages[code] || ("Không gửi được yêu cầu: " + (code || "lỗi không rõ")));
+    showToast(messages[code] || ("Không gửi được yêu cầu: " + (code || "lỗi không rõ")), "error");
     btn.disabled = false;
     btn.textContent = original;
   }
@@ -357,6 +360,7 @@ function showDashboard(profile, user) {
       el.textContent = avatarInitials;
     }
   });
+  initAvatarUpload(currentUser);
 
   // Load matches
   listenToMatches({}, (matches) => {
@@ -423,7 +427,7 @@ onAuthStateChanged(auth, async (user) => {
 
 window.toggleProfileModal = toggleProfileModal;
 window.handleLogout = async () => {
-  if (confirm("Đăng xuất khỏi Rally?")) {
+  if (await confirmDialog({ title: "Đăng xuất", message: "Bạn muốn đăng xuất khỏi Rally?", confirmText: "Đăng xuất" })) {
     await signOut(auth);
     window.location.href = "auth.html";
   }

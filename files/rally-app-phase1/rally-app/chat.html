@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trò chuyện — Rally</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/feedback.css">
   <style>
     .chat-page { padding: 36px 0 52px; }
     .chat-page h1 { font-family: var(--font-display); font-size: 29px; margin-bottom: 7px; }
@@ -32,6 +33,12 @@
     .message.mine .message-time { color: rgba(255,255,255,.72); }
     .message-form { display: flex; gap: 9px; padding: 14px; border-top: 1px solid var(--border); }
     .message-form .input { min-width: 0; flex: 1; }
+    .message-image { display: block; width: min(280px, 100%); max-height: 280px; object-fit: contain; border-radius: 9px; margin-top: 4px; background: rgba(0,0,0,.04); }
+    .message-image-link { display: block; }
+    .message-form .attach-button { width: 44px; flex: 0 0 44px; padding: 0; font-size: 19px; }
+    .attachment-preview { display: flex; align-items: center; gap: 10px; padding: 8px 14px 0; color: var(--text-secondary); font-size: 12px; }
+    .attachment-preview img { width: 42px; height: 42px; object-fit: cover; border-radius: 8px; }
+    .attachment-preview button { color: var(--danger); font-weight: 700; }
     .empty-chat { height: 100%; display: grid; place-content: center; text-align: center; color: var(--text-secondary); padding: 30px; }
     .empty-chat .icon { font-size: 32px; margin-bottom: 10px; }
     @media (max-width: 700px) { .chat-page { padding-top: 22px; } .chat-shell { height: calc(100vh - 150px); grid-template-columns: 1fr; } .chat-sidebar { display: none; } .chat-shell.show-list .chat-sidebar { display: block; border-right: 0; } .chat-shell.show-list .chat-main { display: none; } }
@@ -43,9 +50,9 @@
     <nav class="navbar"><div class="wrap">
       <div class="logo"><a href="dashboard.html">Rally</a></div>
       <div class="nav-links">
-        <a href="findmatch.html">🔎 Tìm trận</a>
-        <a href="creatematch.html">➕ Tạo trận</a>
-        <a href="chat.html" class="active">💬 Trò chuyện</a>
+        <a href="findmatch.html"><span class="nav-icon">search</span><span>Tìm trận</span></a>
+        <a href="creatematch.html"><span class="nav-icon">add_circle</span><span>Tạo trận</span></a>
+        <a href="chat.html" class="active"><span class="nav-icon">chat</span><span>Trò chuyện</span></a>
       </div>
     </div></nav>
     <main class="chat-page">
@@ -66,15 +73,27 @@
   <script type="module">
     import { auth, onAuthStateChanged } from "./js/firebase-config.js";
     import { listenToChats, listenToMessages, sendMessage } from "./js/chat-service.js";
+    import { uploadImage, validateImageFile } from "./js/storage-service.js";
+    import { showToast } from "./js/ui-feedback.js";
 
     let currentUser = null;
     let chats = [];
     let chatSearchTerm = "";
     let activeChatId = new URLSearchParams(location.search).get("chat");
+    let subscribedChatId = null;
     let stopMessages = () => {};
+    let selectedImageFile = null;
+    let selectedImagePreview = "";
 
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
     const timeText = (value) => value?.toDate ? value.toDate().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "Vừa xong";
+
+    function safeImageUrl(value) {
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" ? url.href : "";
+      } catch { return ""; }
+    }
 
     function otherPerson(chat) {
       return chat.hostId === currentUser.uid ? (chat.playerName || "Người chơi") : (chat.hostName || "Chủ trận");
@@ -97,29 +116,85 @@
 
     function renderConversation(chat, messages) {
       const main = document.getElementById("chatMain");
-      const bubbles = messages.length ? messages.map((message) => `
-        <div class="message ${message.senderId === currentUser.uid ? "mine" : ""}">
-          <div class="message-name">${escapeHtml(message.senderName || "Người chơi")}</div>
-          <div>${escapeHtml(message.text)}</div>
-          <div class="message-time">${timeText(message.createdAt)}</div>
-        </div>`).join("") : '<div class="empty-chat"><div class="icon">👋</div><div>Hãy gửi lời chào để bắt đầu trò chuyện.</div></div>';
+      const draftText = main.dataset.chatId === chat.id ? main.querySelector("#messageInput")?.value || "" : "";
+      const bubbles = messages.length ? messages.map((message) => {
+        const imageUrl = safeImageUrl(message.imageUrl);
+        return `
+          <div class="message ${message.senderId === currentUser.uid ? "mine" : ""}">
+            <div class="message-name">${escapeHtml(message.senderName || "Người chơi")}</div>
+            ${message.text ? `<div>${escapeHtml(message.text)}</div>` : ""}
+            ${imageUrl ? `<a class="message-image-link" href="${escapeHtml(imageUrl)}" target="_blank" rel="noopener noreferrer"><img class="message-image" src="${escapeHtml(imageUrl)}" alt="Hình ảnh được gửi trong cuộc trò chuyện" loading="lazy"></a>` : ""}
+            <div class="message-time">${timeText(message.createdAt)}</div>
+          </div>`;
+      }).join("") : '<div class="empty-chat"><div class="icon">👋</div><div>Hãy gửi lời chào để bắt đầu trò chuyện.</div></div>';
       main.innerHTML = `
         <div class="chat-main-head"><h2>${escapeHtml(otherPerson(chat))}</h2><p>${escapeHtml(chat.matchTitle || "Trận cầu lông")}</p></div>
         <div class="messages" id="messageList">${bubbles}</div>
-        <form class="message-form" id="messageForm"><input class="input" id="messageInput" maxlength="800" autocomplete="off" placeholder="Nhập tin nhắn..." required><button class="btn btn-primary" type="submit">Gửi</button></form>`;
+        ${selectedImageFile ? `<div class="attachment-preview" id="attachmentPreview"><img src="${escapeHtml(selectedImagePreview)}" alt="Ảnh sắp gửi"><span>Ảnh đã chọn</span><button type="button" id="removeImage" aria-label="Bỏ ảnh">Bỏ</button></div>` : ""}
+        <form class="message-form" id="messageForm"><input class="input" id="messageInput" maxlength="800" autocomplete="off" placeholder="Nhập tin nhắn..."><input type="file" id="messageImageInput" accept="image/jpeg,image/png,image/webp" hidden><button class="btn btn-outline attach-button" id="attachImageButton" type="button" aria-label="Đính kèm ảnh" title="Gửi ảnh hoặc mã QR">📎</button><button class="btn btn-primary" type="submit">Gửi</button></form>`;
+      main.dataset.chatId = chat.id;
+      document.getElementById("messageInput").value = draftText;
       const messageList = document.getElementById("messageList");
       messageList.scrollTop = messageList.scrollHeight;
+
+      document.getElementById("attachImageButton").addEventListener("click", () => document.getElementById("messageImageInput").click());
+      document.getElementById("messageImageInput").addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        try {
+          validateImageFile(file);
+          if (selectedImagePreview) URL.revokeObjectURL(selectedImagePreview);
+          selectedImageFile = file;
+          selectedImagePreview = URL.createObjectURL(file);
+          renderConversation(chat, messages);
+          document.getElementById("messageInput").focus();
+        } catch (error) {
+          const messagesByCode = {
+            INVALID_IMAGE_TYPE: "Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.",
+            IMAGE_TOO_LARGE: "Ảnh không được lớn hơn 5 MB.",
+          };
+          showToast(messagesByCode[error.message] || "Không thể dùng ảnh này.", "error");
+        }
+      });
+      document.getElementById("removeImage")?.addEventListener("click", () => {
+        if (selectedImagePreview) URL.revokeObjectURL(selectedImagePreview);
+        selectedImagePreview = "";
+        selectedImageFile = null;
+        renderConversation(chat, messages);
+      });
       document.getElementById("messageForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         const input = document.getElementById("messageInput");
-        const submit = event.currentTarget.querySelector("button");
+        const submit = event.currentTarget.querySelector('button[type="submit"]');
+        const text = input.value.trim();
+        const imageFile = selectedImageFile;
+        if (!text && !imageFile) {
+          showToast("Nhập tin nhắn hoặc chọn ảnh trước khi gửi.", "info");
+          return;
+        }
         submit.disabled = true;
+        submit.textContent = imageFile ? "Đang tải..." : "Đang gửi...";
         try {
-          await sendMessage({ chatId: chat.id, senderId: currentUser.uid, senderName: currentUser.displayName || currentUser.email, text: input.value });
-          input.value = "";
+          const imageUrl = imageFile ? await uploadImage(imageFile, `chats/${chat.id}/messages/${currentUser.uid}`) : "";
+          await sendMessage({ chatId: chat.id, senderId: currentUser.uid, senderName: currentUser.displayName || currentUser.email, text, imageUrl });
+          selectedImageFile = null;
+          if (selectedImagePreview) URL.revokeObjectURL(selectedImagePreview);
+          selectedImagePreview = "";
+          document.getElementById("messageInput").value = "";
+          document.getElementById("attachmentPreview")?.remove();
+          showToast("Tin nhắn đã được gửi.");
         } catch (error) {
-          alert("Không gửi được tin nhắn: " + (error.message || error));
-        } finally { submit.disabled = false; }
+          const messagesByCode = {
+            INVALID_IMAGE_TYPE: "Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.",
+            IMAGE_TOO_LARGE: "Ảnh không được lớn hơn 5 MB.",
+            "storage/unauthorized": "Không có quyền tải ảnh. Hãy kiểm tra Firebase Storage Rules.",
+          };
+          showToast(messagesByCode[error?.code || error?.message] || `Không gửi được tin nhắn: ${error.message || error}`, "error");
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Gửi";
+          if (selectedImageFile !== imageFile) input.value = "";
+        }
       });
     }
 
@@ -127,11 +202,15 @@
       const chat = chats.find((item) => item.id === chatId);
       if (!chat) return;
       activeChatId = chatId;
+      subscribedChatId = chatId;
       history.replaceState(null, "", `chat.html?chat=${encodeURIComponent(chatId)}`);
       renderChatList();
       document.getElementById("chatShell").classList.remove("show-list");
+      if (selectedImagePreview) URL.revokeObjectURL(selectedImagePreview);
+      selectedImageFile = null;
+      selectedImagePreview = "";
       stopMessages();
-      stopMessages = listenToMessages(chatId, (messages) => renderConversation(chat, messages), (error) => alert("Không tải được tin nhắn: " + error.message));
+      stopMessages = listenToMessages(chatId, (messages) => renderConversation(chat, messages), (error) => showToast("Không tải được tin nhắn: " + error.message, "error"));
     }
 
     document.getElementById("chatList").addEventListener("click", (event) => {
@@ -152,7 +231,7 @@
       listenToChats(user.uid, (items) => {
         chats = items;
         renderChatList();
-        if (activeChatId && chats.some((chat) => chat.id === activeChatId)) openChat(activeChatId);
+        if (activeChatId && activeChatId !== subscribedChatId && chats.some((chat) => chat.id === activeChatId)) openChat(activeChatId);
       }, (error) => { document.getElementById("chatList").innerHTML = `<div class="empty-chat">Không tải được cuộc trò chuyện.<br>${escapeHtml(error.message)}</div>`; });
     });
   </script>

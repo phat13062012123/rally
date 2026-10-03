@@ -73,33 +73,41 @@ export async function createMatch(host, match) {
  * @returns {() => void} unsubscribe
  */
 export function listenToMatches(filters, onData, onError) {
-  const clauses = [];
-
-  // Chỉ hiện trận đã publish. Việc ẩn trận đã đầy chỗ (currentPlayers >= maxPlayers)
-  // khi bật "Chỉ hiện trận còn chỗ" được lọc ở phía client (xem findmatch.html),
-  // để tránh phải query thêm điều kiện bất đẳng thức trên "currentPlayers" (cần composite
-  // index phức tạp hơn và không cộng dồn tốt với orderBy("date")).
-  clauses.push(where("status", "==", MATCH_STATUS.PUBLISHED));
-
-  if (filters.area) clauses.push(where("area", "==", filters.area));
-  if (filters.skillLevel && filters.skillLevel !== "All") clauses.push(where("skillLevel", "==", filters.skillLevel));
-  if (filters.date) clauses.push(where("date", "==", filters.date));
-
-  // Trận gần nhất lên trước. Lưu ý: lần đầu chạy, Firestore có thể báo lỗi kèm link
-  // để bạn bấm tạo composite index (where + orderBy nhiều trường) — chỉ cần bấm link đó.
-  const q = query(
-    collection(db, MATCHES_COLLECTION),
-    ...clauses,
-    orderBy("date", "asc"),
-    orderBy("startTime", "asc"),
-    limit(50)
-  );
+  // Giữ query tối thiểu để không bị lỗi composite index trên Firestore.
+  // Tất cả lọc thêm (khu vực, trình độ, ngày, còn chỗ) sẽ được xử lý ở client.
+  const q = query(collection(db, MATCHES_COLLECTION), where("status", "==", MATCH_STATUS.PUBLISHED));
 
   return onSnapshot(
     q,
     (snap) => {
       const matches = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      onData(matches);
+      const normalizedFilters = {
+        area: filters?.area || "",
+        skillLevel: filters?.skillLevel || "All",
+        date: filters?.date || "",
+      };
+
+      const filtered = matches.filter((match) => {
+        const matchArea = match.area || "";
+        const matchSkill = match.skillLevel || "All";
+        const matchDate = match.date || "";
+
+        const areaOk = !normalizedFilters.area || matchArea === normalizedFilters.area;
+        const skillOk = normalizedFilters.skillLevel === "All" || matchSkill === normalizedFilters.skillLevel;
+        const dateOk = !normalizedFilters.date || matchDate === normalizedFilters.date;
+
+        return areaOk && skillOk && dateOk;
+      }).sort((a, b) => {
+        const dateA = a.date || "9999-12-31";
+        const dateB = b.date || "9999-12-31";
+        const timeA = a.startTime || "00:00";
+        const timeB = b.startTime || "00:00";
+
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+        return timeA.localeCompare(timeB);
+      });
+
+      onData(filtered);
     },
     (err) => {
       console.error("listenToMatches error:", err);
